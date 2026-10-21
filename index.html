@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mi Calendario</title>
+  <!-- PWA: para poder instalarla como app -->
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0f1020">
+  <link rel="icon" href="iconos/icono.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Calendario">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600&family=Nunito:wght@400;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header>
+    <button id="btn-anterior" aria-label="Mes anterior">◀</button>
+    <h1 id="titulo-mes"></h1>
+    <button id="btn-siguiente" aria-label="Mes siguiente">▶</button>
+  </header>
+
+  <main>
+    <!-- Columna izquierda: el calendario -->
+    <section>
+      <!-- Marcador de puntos -->
+      <div class="marcador">
+        <div class="stat"><span class="stat-valor" id="pts-semana">0</span><span class="stat-nombre">Esta semana</span></div>
+        <div class="stat"><span class="stat-valor" id="pts-mes">0</span><span class="stat-nombre">Este mes</span></div>
+        <div class="stat"><span class="stat-valor" id="pts-anio">0</span><span class="stat-nombre">Este año</span></div>
+        <div class="stat"><span class="stat-valor" id="pts-total">0</span><span class="stat-nombre">Total</span></div>
+      </div>
+
+      <div class="dias-semana">
+        <span>Lun</span><span>Mar</span><span>Mié</span><span>Jue</span>
+        <span>Vie</span><span>Sáb</span><span>Dom</span>
+      </div>
+      <div id="calendario" class="calendario"></div>
+      <button id="btn-hoy" class="btn-secundario">Ir a hoy</button>
+    </section>
+
+    <!-- Columna derecha: detalle del día seleccionado -->
+    <aside id="panel-dia">
+      <h2 id="titulo-dia"></h2>
+      <p id="puntos-dia" class="puntos-dia"></p>
+
+      <h3>Hábitos</h3>
+      <div id="lista-habitos"></div>
+      <p id="aviso-bloqueo" class="aviso">🔒 Solo puedes marcar hábitos de hoy y de ayer</p>
+
+      <h3>Cumpleaños</h3>
+      <ul id="lista-cumples"></ul>
+      <form id="form-cumple" class="form-fila">
+        <input id="input-cumple" placeholder="Nombre" required>
+        <button type="submit">🎂 Añadir</button>
+      </form>
+
+      <h3>Notas</h3>
+      <textarea id="notas" placeholder="¿Qué tal el día?"></textarea>
+
+      <details>
+        <summary>➕ Nuevo hábito</summary>
+        <form id="form-habito" class="form-fila">
+          <input id="habito-emoji" placeholder="🙂" maxlength="2" class="input-emoji">
+          <input id="habito-nombre" placeholder="Ej: Leer" required>
+          <input id="habito-color" type="color" value="#9b59b6">
+          <button type="submit">Añadir</button>
+        </form>
+      </details>
+
+      <details>
+        <summary>💾 Copia de seguridad</summary>
+        <div class="form-fila">
+          <button id="btn-exportar" type="button">Exportar</button>
+          <button id="btn-importar" type="button" class="btn-secundario">Importar</button>
+          <input id="input-importar" type="file" accept="application/json" hidden>
+        </div>
+      </details>
+    </aside>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+/* ===== Tema: noche suave (oscuro) con modo claro automático ===== */
+:root {
+  --fondo: #0f1020;
+  --fondo-2: #1a1640;
+  --tarjeta: rgba(255, 255, 255, 0.06);
+  --tarjeta-hover: rgba(255, 255, 255, 0.11);
+  --borde: rgba(255, 255, 255, 0.10);
+  --texto: #ecebff;
+  --suave: #9a98c3;
+  --acento: #ff8a5c;
+  --acento-2: #c86bfa;
+  --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --fondo: #fdf6ee;
+    --fondo-2: #f3e8ff;
+    --tarjeta: rgba(255, 255, 255, 0.75);
+    --tarjeta-hover: #ffffff;
+    --borde: rgba(60, 40, 90, 0.10);
+    --texto: #2a2140;
+    --suave: #85799c;
+    --sombra: 0 10px 30px rgba(80, 50, 120, 0.12);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Nunito", system-ui, sans-serif;
+  color: var(--texto);
+  background:
+    radial-gradient(circle at 15% 10%, var(--fondo-2), transparent 45%),
+    radial-gradient(circle at 90% 90%, rgba(255, 138, 92, 0.15), transparent 40%),
+    var(--fondo);
+  background-attachment: fixed;
+}
+
+/* ---------- Cabecera ---------- */
+header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.8rem 1rem 1.2rem;
+}
+
+header h1 {
+  margin: 0;
+  min-width: 260px;
+  text-align: center;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-size: 2.2rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--acento), var(--acento-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+header button {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 50%;
+  background: var(--tarjeta);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+}
+
+header button:hover { background: var(--tarjeta-hover); }
+
+/* ---------- Botones ---------- */
+button {
+  cursor: pointer;
+  border: none;
+  background: linear-gradient(135deg, var(--acento), var(--acento-2));
+  color: white;
+  border-radius: 12px;
+  padding: 0.55rem 1rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  font-weight: 700;
+  transition: transform 0.15s, filter 0.15s;
+}
+
+button:hover { transform: translateY(-1px); filter: brightness(1.08); }
+button:active { transform: translateY(0); }
+
+#btn-hoy {
+  margin-top: 1rem;
+}
+
+.btn-secundario {
+  background: var(--tarjeta);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+}
+
+/* ---------- Layout ---------- */
+main {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1.8rem;
+  max-width: 1150px;
+  margin: 0 auto;
+  padding: 0 1rem 2.5rem;
+}
+
+/* ---------- Marcador de puntos ---------- */
+.marcador {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 1.4rem;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.9rem 0.5rem;
+  border-radius: 18px;
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(8px);
+}
+
+.stat-valor {
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-size: 1.9rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(90deg, var(--acento), var(--acento-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.stat-nombre {
+  margin-top: 2px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--suave);
+}
+
+/* ---------- Calendario ---------- */
+.dias-semana, .calendario {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+
+.dias-semana span {
+  text-align: center;
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--suave);
+  padding-bottom: 6px;
+}
+
+.celda {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 16px;
+  min-height: 88px;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  backdrop-filter: blur(8px);
+  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+}
+
+.celda:hover {
+  background: var(--tarjeta-hover);
+  transform: translateY(-3px);
+  box-shadow: var(--sombra);
+}
+
+.celda.vacia {
+  background: transparent;
+  border-color: transparent;
+  cursor: default;
+  backdrop-filter: none;
+}
+.celda.vacia:hover { transform: none; box-shadow: none; }
+
+.celda.hoy .numero {
+  background: linear-gradient(135deg, var(--acento), var(--acento-2));
+  color: white;
+  box-shadow: 0 0 14px rgba(255, 138, 92, 0.55);
+}
+
+.celda.seleccionado {
+  border: 2px solid var(--acento);
+  box-shadow: 0 0 0 4px rgba(255, 138, 92, 0.18);
+}
+
+.numero {
+  font-weight: 800;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.celda > div:first-child { display: flex; align-items: center; flex-wrap: wrap; }
+
+.pts-celda {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--acento);
+}
+
+.puntos { display: flex; flex-wrap: wrap; gap: 4px; }
+.punto {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- Panel del día ---------- */
+aside {
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  border-radius: 22px;
+  padding: 1.4rem 1.5rem;
+  align-self: start;
+  position: sticky;
+  top: 1rem;
+  backdrop-filter: blur(14px);
+  box-shadow: var(--sombra);
+}
+
+aside h2 {
+  margin-top: 0;
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+aside h3 {
+  margin: 1.2rem 0 0.5rem;
+  color: var(--suave);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.habito {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.55rem 0.7rem;
+  margin-bottom: 6px;
+  border-radius: 12px;
+  background: var(--tarjeta);
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.habito:hover { background: var(--tarjeta-hover); }
+.habito input { width: 19px; height: 19px; cursor: pointer; }
+.habito.bloqueado { opacity: 0.55; cursor: not-allowed; }
+.habito.bloqueado input { cursor: not-allowed; }
+
+.racha {
+  margin-left: auto;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--acento);
+}
+
+.puntos-dia {
+  margin: -0.4rem 0 0;
+  font-weight: 800;
+  color: var(--acento);
+}
+
+.aviso {
+  margin: 0.3rem 0 0;
+  font-size: 0.8rem;
+  color: var(--suave);
+}
+
+#lista-cumples { list-style: none; padding: 0; margin: 0.3rem 0; }
+#lista-cumples li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.4rem 0.7rem;
+  margin-bottom: 5px;
+  border-radius: 10px;
+  background: var(--tarjeta);
+}
+#lista-cumples li::before { content: "🎂 "; }
+#lista-cumples button {
+  background: none;
+  color: var(--suave);
+  padding: 0 0.4rem;
+  margin-left: auto;
+}
+
+/* ---------- Formularios ---------- */
+.form-fila { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+
+input, textarea {
+  background: var(--tarjeta);
+  color: var(--texto);
+  border: 1px solid var(--borde);
+  border-radius: 12px;
+  padding: 0.55rem 0.7rem;
+  font-size: 0.95rem;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus, textarea:focus {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 3px rgba(255, 138, 92, 0.2);
+}
+
+input::placeholder, textarea::placeholder { color: var(--suave); }
+
+input[type="color"] {
+  padding: 2px;
+  width: 42px;
+  height: 38px;
+  cursor: pointer;
+}
+
+.form-fila input:not([type="color"]) { flex: 1; min-width: 0; }
+.input-emoji { flex: 0 0 3.2rem !important; text-align: center; }
+
+textarea { width: 100%; min-height: 100px; resize: vertical; }
+
+details {
+  margin-top: 1.3rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--borde);
+}
+summary { cursor: pointer; color: var(--acento); font-weight: 700; }
+
+/* ---------- Móvil ---------- */
+@media (max-width: 750px) {
+  main { grid-template-columns: 1fr; }
+  aside { position: static; }
+  .celda { min-height: 58px; border-radius: 12px; padding: 5px; }
+  header h1 { font-size: 1.6rem; min-width: 0; }
+  .marcador { grid-template-columns: repeat(2, 1fr); }
+  .pts-celda { display: none; }
+}
