@@ -32,7 +32,7 @@ let datos = cargar();
 // =====================================================
 // 2. ESTADO: qué mes vemos y qué día está seleccionado
 // =====================================================
-const hoy = new Date();
+let hoy = new Date(); // se actualiza si la app sigue abierta al cambiar de día
 let mesVisible = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
 let diaSeleccionado = claveFecha(hoy);
 
@@ -47,8 +47,15 @@ function claveFecha(fecha) {
   return `${a}-${m}-${d}`;
 }
 
-function cumplesDelDia(mes, dia) {
-  return datos.cumples.filter(c => c.mes === mes && c.dia === dia);
+function esBisiesto(año) {
+  return new Date(año, 1, 29).getMonth() === 1;
+}
+
+// Los nacidos el 29 de febrero lo celebran el 28 en los años no bisiestos
+function cumplesDelDia(año, mes, dia) {
+  const feb28 = mes === 2 && dia === 28 && !esBisiesto(año);
+  return datos.cumples.filter(c =>
+    (c.mes === mes && c.dia === dia) || (feb28 && c.mes === 2 && c.dia === 29));
 }
 
 // Suma (o resta) días a una clave "AAAA-MM-DD"
@@ -136,7 +143,7 @@ function pintarCalendario() {
     numero.className = "numero";
     numero.textContent = d;
     cabecera.appendChild(numero);
-    if (cumplesDelDia(mes + 1, d).length > 0) cabecera.append(" 🎂");
+    if (cumplesDelDia(año, mes + 1, d).length > 0) cabecera.append(" 🎂");
     const puntosCelda = puntosDelDia(clave);
     if (puntosCelda > 0) {
       const pts = document.createElement("span");
@@ -216,7 +223,7 @@ function pintarPanel() {
   // Cumpleaños de ese día
   const ul = document.getElementById("lista-cumples");
   ul.innerHTML = "";
-  cumplesDelDia(m, d).forEach(c => {
+  cumplesDelDia(a, m, d).forEach(c => {
     const li = document.createElement("li");
     li.textContent = c.nombre;
     const borrar = document.createElement("button");
@@ -285,8 +292,10 @@ document.getElementById("btn-hoy").addEventListener("click", () => {
 document.getElementById("form-cumple").addEventListener("submit", e => {
   e.preventDefault(); // evita que el formulario recargue la página
   const input = document.getElementById("input-cumple");
+  const nombre = input.value.trim();
+  if (!nombre) return; // no aceptar nombres hechos solo de espacios
   const [, m, d] = diaSeleccionado.split("-").map(Number);
-  datos.cumples.push({ nombre: input.value.trim(), mes: m, dia: d });
+  datos.cumples.push({ nombre, mes: m, dia: d });
   input.value = "";
   guardar();
   pintarTodo();
@@ -300,16 +309,29 @@ document.getElementById("notas").addEventListener("input", e => {
 
 document.getElementById("form-habito").addEventListener("submit", e => {
   e.preventDefault();
+  const nombre = document.getElementById("habito-nombre").value.trim();
+  if (!nombre) return;
   datos.habitos.push({
     id: "h" + Date.now(),
-    nombre: document.getElementById("habito-nombre").value.trim(),
-    emoji: document.getElementById("habito-emoji").value || "✅",
+    nombre,
+    emoji: primerEmoji(document.getElementById("habito-emoji").value) || "✅",
     color: document.getElementById("habito-color").value,
   });
   e.target.reset();
   guardar();
   pintarTodo();
 });
+
+// Muchos emojis ocupan varios caracteres (🏋️ son 3), así que cogemos
+// el primer "carácter visible" en vez de cortar por longitud
+function primerEmoji(texto) {
+  texto = texto.trim();
+  if (!texto) return "";
+  if (window.Intl && Intl.Segmenter) {
+    return new Intl.Segmenter().segment(texto)[Symbol.iterator]().next().value.segment;
+  }
+  return Array.from(texto)[0];
+}
 
 // Copia de seguridad: descarga todos los datos en un .json
 document.getElementById("btn-exportar").addEventListener("click", () => {
@@ -343,6 +365,26 @@ document.getElementById("input-importar").addEventListener("change", async e => 
   }
   e.target.value = "";
 });
+
+// Si la app sigue abierta al pasar la medianoche, "hoy" se queda viejo.
+// Lo comprobamos al volver a la app y cada minuto.
+function comprobarCambioDeDia() {
+  const ahora = new Date();
+  if (claveFecha(ahora) === claveFecha(hoy)) return;
+  const claveVieja = claveFecha(hoy);
+  const mesViejo = hoy.getMonth();
+  hoy = ahora;
+  // Si estábamos mirando "hoy", pasamos al nuevo hoy
+  if (diaSeleccionado === claveVieja) diaSeleccionado = claveFecha(hoy);
+  if (mesVisible.getMonth() === mesViejo && hoy.getMonth() !== mesViejo) {
+    mesVisible = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+  }
+  pintarTodo();
+}
+document.addEventListener("visibilitychange", () => {
+  if (!document.hidden) comprobarCambioDeDia();
+});
+setInterval(comprobarCambioDeDia, 60 * 1000);
 
 // Arranque
 pintarTodo();
