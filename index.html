@@ -25,6 +25,13 @@
   <main>
     <!-- Columna izquierda: el calendario -->
     <section>
+      <!-- Aviso: toca hacer copia de seguridad -->
+      <div id="aviso-copia" class="aviso-copia" hidden>
+        <span id="texto-aviso-copia"></span>
+        <button id="btn-copia-ahora" type="button">💾 Exportar</button>
+        <button id="btn-copia-luego" type="button" class="btn-secundario">Luego</button>
+      </div>
+
       <!-- Marcador de puntos -->
       <div class="marcador">
         <div class="stat"><span class="stat-valor" id="pts-semana">0</span><span class="stat-nombre">Esta semana</span></div>
@@ -39,6 +46,12 @@
       </div>
       <div id="calendario" class="calendario"></div>
       <button id="btn-hoy" class="btn-secundario">Ir a hoy</button>
+
+      <!-- Estadísticas del mes que estamos viendo -->
+      <div class="estadisticas">
+        <h3>📊 Estadísticas · <span id="titulo-stats"></span></h3>
+        <div id="lista-stats" class="lista-stats"></div>
+      </div>
     </section>
 
     <!-- Columna derecha: detalle del día seleccionado -->
@@ -61,7 +74,10 @@
       <textarea id="notas" placeholder="¿Qué tal el día?"></textarea>
 
       <details>
-        <summary>➕ Nuevo hábito</summary>
+        <summary>⚙️ Hábitos</summary>
+        <!-- Editar o borrar los hábitos que ya existen -->
+        <div id="gestion-habitos"></div>
+        <p class="aviso">Nuevo hábito:</p>
         <form id="form-habito" class="form-fila">
           <input id="habito-emoji" placeholder="🙂" class="input-emoji">
           <input id="habito-nombre" placeholder="Ej: Leer" required>
@@ -77,6 +93,8 @@
           <button id="btn-importar" type="button" class="btn-secundario">Importar</button>
           <input id="input-importar" type="file" accept="application/json" hidden>
         </div>
+        <p id="estado-copia" class="aviso"></p>
+        <p id="estado-guardado" class="aviso"></p>
       </details>
     </aside>
   </main>

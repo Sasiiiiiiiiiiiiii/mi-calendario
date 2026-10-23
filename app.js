@@ -64,6 +64,15 @@ function sumarDias(clave, n) {
   return claveFecha(new Date(a, m - 1, d + n));
 }
 
+// Días que hay de una clave a otra (UTC para que el cambio de hora no moleste)
+function diasEntre(desde, hasta) {
+  const ms = clave => {
+    const [a, m, d] = clave.split("-").map(Number);
+    return Date.UTC(a, m - 1, d);
+  };
+  return Math.round((ms(hasta) - ms(desde)) / 86400000);
+}
+
 // Solo se pueden marcar hábitos de hoy y de ayer (para no hacer trampas)
 function esEditable(clave) {
   const claveHoy = claveFecha(hoy);
@@ -90,6 +99,23 @@ function racha(id, clave) {
     clave = sumarDias(clave, -1);
   }
   return n;
+}
+
+// Racha que se ve "ahora": si hoy aún no está hecho, cuenta la que viene de ayer
+function rachaActual(id, clave) {
+  return hecho(clave, id) ? racha(id, clave) : racha(id, sumarDias(clave, -1));
+}
+
+// La racha más larga de toda la historia de un hábito
+function mejorRacha(id) {
+  const dias = Object.keys(datos.registros).filter(c => hecho(c, id)).sort();
+  let mejor = 0, actual = 0, anterior = null;
+  dias.forEach(c => {
+    actual = anterior && sumarDias(anterior, 1) === c ? actual + 1 : 1;
+    mejor = Math.max(mejor, actual);
+    anterior = c;
+  });
+  return mejor;
 }
 
 function puntosDelDia(clave) {
@@ -202,10 +228,7 @@ function pintarPanel() {
     check.addEventListener("change", () => alternarHabito(h.id));
     label.append(check, `${h.emoji} ${h.nombre}`);
 
-    // Racha: si aún no está hecho ese día, cuenta la que viene de ayer
-    const dias = hecho(diaSeleccionado, h.id)
-      ? racha(h.id, diaSeleccionado)
-      : racha(h.id, sumarDias(diaSeleccionado, -1));
+    const dias = rachaActual(h.id, diaSeleccionado);
     if (dias > 0) {
       const fuego = document.createElement("span");
       fuego.className = "racha";
@@ -225,7 +248,13 @@ function pintarPanel() {
   ul.innerHTML = "";
   cumplesDelDia(a, m, d).forEach(c => {
     const li = document.createElement("li");
-    li.textContent = c.nombre;
+    const nombre = document.createElement("span");
+    nombre.className = "cumple-nombre";
+    nombre.textContent = c.nombre;
+    const editar = document.createElement("button");
+    editar.textContent = "✏️";
+    editar.title = "Editar";
+    editar.addEventListener("click", () => editarCumple(li, c));
     const borrar = document.createElement("button");
     borrar.textContent = "✕";
     borrar.title = "Borrar";
@@ -234,11 +263,75 @@ function pintarPanel() {
       guardar();
       pintarTodo();
     });
-    li.appendChild(borrar);
+    li.append(nombre, editar, borrar);
     ul.appendChild(li);
   });
 
   document.getElementById("notas").value = datos.notas[diaSeleccionado] || "";
+}
+
+// Cambia la fila del cumpleaños por un formulario: nombre, día y mes
+function editarCumple(li, c) {
+  li.innerHTML = "";
+  li.classList.add("editando");
+  const form = document.createElement("form");
+  form.className = "form-fila form-cumple-editar";
+
+  const nombre = document.createElement("input");
+  nombre.value = c.nombre;
+  nombre.required = true;
+  nombre.setAttribute("aria-label", "Nombre");
+
+  const dia = document.createElement("input");
+  dia.type = "number";
+  dia.min = 1;
+  dia.max = 31;
+  dia.value = c.dia;
+  dia.required = true;
+  dia.className = "input-dia";
+  dia.setAttribute("aria-label", "Día");
+  dia.addEventListener("input", () => dia.setCustomValidity(""));
+
+  const mes = document.createElement("select");
+  mes.setAttribute("aria-label", "Mes");
+  MESES.forEach((nombreMes, i) => mes.add(new Option(nombreMes, i + 1, false, i + 1 === c.mes)));
+  mes.addEventListener("change", () => dia.setCustomValidity(""));
+
+  const ok = document.createElement("button");
+  ok.type = "submit";
+  ok.textContent = "✓";
+  ok.title = "Guardar";
+  const cancelar = document.createElement("button");
+  cancelar.type = "button";
+  cancelar.textContent = "✕";
+  cancelar.title = "Cancelar";
+  cancelar.addEventListener("click", pintarPanel);
+
+  form.addEventListener("submit", e => {
+    e.preventDefault();
+    const n = nombre.value.trim();
+    const dd = Number(dia.value);
+    const mm = Number(mes.value);
+    if (!n) return;
+    // 2024 es bisiesto: así se acepta el 29 de febrero
+    if (new Date(2024, mm - 1, dd).getMonth() !== mm - 1) {
+      dia.setCustomValidity("Ese día no existe en ese mes");
+      dia.reportValidity();
+      return;
+    }
+    Object.assign(c, { nombre: n, mes: mm, dia: dd });
+    guardar();
+    // Si ha cambiado la fecha, saltamos a ese día para seguir viéndolo
+    const año = Number(diaSeleccionado.slice(0, 4));
+    const diaReal = mm === 2 && dd === 29 && !esBisiesto(año) ? 28 : dd;
+    diaSeleccionado = claveFecha(new Date(año, mm - 1, diaReal));
+    mesVisible = new Date(año, mm - 1, 1);
+    pintarTodo();
+  });
+
+  form.append(nombre, dia, mes, ok, cancelar);
+  li.appendChild(form);
+  nombre.focus();
 }
 
 // =====================================================
@@ -254,10 +347,115 @@ function pintarMarcador() {
   document.getElementById("pts-total").textContent = puntosEntre("0000-00-00", "9999-99-99");
 }
 
+// =====================================================
+// 4c. PINTAR LAS ESTADÍSTICAS (del mes que estamos viendo)
+// =====================================================
+function pintarEstadisticas() {
+  const año = mesVisible.getFullYear();
+  const mes = mesVisible.getMonth();
+  document.getElementById("titulo-stats").textContent = `${MESES[mes]} ${año}`;
+
+  // Solo cuentan los días que ya han llegado (hasta hoy incluido)
+  const claveHoy = claveFecha(hoy);
+  const diasEnMes = new Date(año, mes + 1, 0).getDate();
+  let contados = 0;
+  while (contados < diasEnMes && claveFecha(new Date(año, mes, contados + 1)) <= claveHoy) contados++;
+
+  const lista = document.getElementById("lista-stats");
+  lista.innerHTML = "";
+  datos.habitos.forEach(h => {
+    let hechos = 0;
+    for (let d = 1; d <= contados; d++) {
+      if (hecho(claveFecha(new Date(año, mes, d)), h.id)) hechos++;
+    }
+    const pct = contados ? Math.round(hechos / contados * 100) : 0;
+
+    const tarjeta = document.createElement("div");
+    tarjeta.className = "stat-habito";
+
+    const cabecera = document.createElement("div");
+    cabecera.className = "stat-cabecera";
+    const nombre = document.createElement("span");
+    nombre.textContent = `${h.emoji} ${h.nombre}`;
+    const porcentaje = document.createElement("span");
+    porcentaje.className = "stat-pct";
+    porcentaje.textContent = contados ? `${pct}%` : "—";
+    cabecera.append(nombre, porcentaje);
+
+    const barra = document.createElement("div");
+    barra.className = "barra";
+    const relleno = document.createElement("div");
+    relleno.style.width = `${pct}%`;
+    relleno.style.background = h.color;
+    barra.appendChild(relleno);
+
+    const detalle = document.createElement("p");
+    detalle.className = "stat-detalle";
+    detalle.textContent =
+      `${hechos} de ${contados} días · 🔥 racha ${rachaActual(h.id, claveHoy)} · 🏆 mejor ${mejorRacha(h.id)}`;
+
+    tarjeta.append(cabecera, barra, detalle);
+    lista.appendChild(tarjeta);
+  });
+}
+
+// =====================================================
+// 4d. PINTAR LA LISTA PARA EDITAR HÁBITOS
+// =====================================================
+function pintarGestionHabitos() {
+  const contenedor = document.getElementById("gestion-habitos");
+  contenedor.innerHTML = "";
+  datos.habitos.forEach(h => {
+    const fila = document.createElement("div");
+    fila.className = "form-fila";
+
+    const emoji = document.createElement("input");
+    emoji.className = "input-emoji";
+    emoji.value = h.emoji;
+    emoji.setAttribute("aria-label", "Emoji");
+    emoji.addEventListener("change", () => {
+      h.emoji = primerEmoji(emoji.value) || h.emoji;
+      emoji.value = h.emoji;
+      cambiarHabito();
+    });
+
+    const nombre = document.createElement("input");
+    nombre.value = h.nombre;
+    nombre.setAttribute("aria-label", "Nombre");
+    nombre.addEventListener("change", () => {
+      h.nombre = nombre.value.trim() || h.nombre;
+      nombre.value = h.nombre;
+      cambiarHabito();
+    });
+
+    const color = document.createElement("input");
+    color.type = "color";
+    color.value = h.color;
+    color.setAttribute("aria-label", "Color");
+    color.addEventListener("input", () => {
+      h.color = color.value;
+      cambiarHabito();
+    });
+
+    const borrar = document.createElement("button");
+    borrar.type = "button";
+    borrar.className = "btn-secundario";
+    borrar.textContent = "🗑️";
+    borrar.title = "Borrar hábito";
+    borrar.addEventListener("click", () => borrarHabito(h));
+
+    fila.append(emoji, nombre, color, borrar);
+    contenedor.appendChild(fila);
+  });
+}
+
 function pintarTodo() {
+  pintarAvisoCopia();
   pintarMarcador();
   pintarCalendario();
   pintarPanel();
+  pintarEstadisticas();
+  pintarGestionHabitos();
 }
 
 // =====================================================
@@ -273,14 +471,35 @@ function alternarHabito(id) {
   pintarTodo();
 }
 
+// Al editar un hábito repintamos todo menos su propia lista, para no perder el foco
+function cambiarHabito() {
+  guardar();
+  pintarCalendario();
+  pintarPanel();
+  pintarEstadisticas();
+}
+
+function borrarHabito(h) {
+  if (!confirm(`¿Borrar "${h.nombre}"? También se borrarán sus días marcados y sus puntos.`)) return;
+  datos.habitos = datos.habitos.filter(x => x !== h);
+  for (const clave in datos.registros) {
+    datos.registros[clave] = datos.registros[clave].filter(id => id !== h.id);
+    if (datos.registros[clave].length === 0) delete datos.registros[clave];
+  }
+  guardar();
+  pintarTodo();
+}
+
 document.getElementById("btn-anterior").addEventListener("click", () => {
   mesVisible = new Date(mesVisible.getFullYear(), mesVisible.getMonth() - 1, 1);
   pintarCalendario();
+  pintarEstadisticas();
 });
 
 document.getElementById("btn-siguiente").addEventListener("click", () => {
   mesVisible = new Date(mesVisible.getFullYear(), mesVisible.getMonth() + 1, 1);
   pintarCalendario();
+  pintarEstadisticas();
 });
 
 document.getElementById("btn-hoy").addEventListener("click", () => {
@@ -334,13 +553,22 @@ function primerEmoji(texto) {
 }
 
 // Copia de seguridad: descarga todos los datos en un .json
-document.getElementById("btn-exportar").addEventListener("click", () => {
+function exportar() {
   const blob = new Blob([JSON.stringify(datos, null, 2)], { type: "application/json" });
   const enlace = document.createElement("a");
   enlace.href = URL.createObjectURL(blob);
   enlace.download = `mi-calendario-${claveFecha(hoy)}.json`;
   enlace.click();
   URL.revokeObjectURL(enlace.href);
+  guardarInfoCopia({ ultima: claveFecha(hoy) });
+  pintarAvisoCopia();
+}
+
+document.getElementById("btn-exportar").addEventListener("click", exportar);
+document.getElementById("btn-copia-ahora").addEventListener("click", exportar);
+document.getElementById("btn-copia-luego").addEventListener("click", () => {
+  guardarInfoCopia({ posponer: sumarDias(claveFecha(hoy), 3) });
+  pintarAvisoCopia();
 });
 
 // Importar: sustituye los datos actuales por los del archivo
@@ -366,6 +594,57 @@ document.getElementById("input-importar").addEventListener("change", async e => 
   e.target.value = "";
 });
 
+// =====================================================
+// 6. PROTEGER LOS DATOS
+// =====================================================
+// Cuándo se hizo la última copia. Va en otra clave para que no viaje dentro de la copia
+const CLAVE_COPIA = "mi-calendario-copia";
+const DIAS_AVISO_COPIA = 14;
+
+function leerInfoCopia() {
+  try {
+    return JSON.parse(localStorage.getItem(CLAVE_COPIA)) || {};
+  } catch {
+    return {};
+  }
+}
+
+function guardarInfoCopia(cambios) {
+  localStorage.setItem(CLAVE_COPIA, JSON.stringify({ ...leerInfoCopia(), ...cambios }));
+}
+
+function pintarAvisoCopia() {
+  const info = leerInfoCopia();
+  const claveHoy = claveFecha(hoy);
+  // Si nunca has exportado, contamos desde el primer día que marcaste algo
+  const desde = info.ultima || Object.keys(datos.registros).sort()[0];
+  const dias = desde ? diasEntre(desde, claveHoy) : 0;
+  const pospuesto = info.posponer && claveHoy < info.posponer;
+
+  document.getElementById("aviso-copia").hidden = dias < DIAS_AVISO_COPIA || pospuesto;
+  document.getElementById("texto-aviso-copia").textContent = info.ultima
+    ? `💾 Hace ${dias} días que no haces copia de seguridad`
+    : "💾 Aún no has hecho ninguna copia de seguridad";
+  document.getElementById("estado-copia").textContent = info.ultima
+    ? `Última copia: ${info.ultima.split("-").reverse().join("/")}`
+    : "Aún no has hecho ninguna copia.";
+}
+
+// Pide al navegador que no borre los datos aunque le falte espacio
+// (sin esto, algunos móviles pueden borrarlos si llevas tiempo sin abrir la app)
+async function protegerDatos() {
+  const estado = document.getElementById("estado-guardado");
+  if (!navigator.storage || !navigator.storage.persist) return;
+  try {
+    const protegido = (await navigator.storage.persisted()) || (await navigator.storage.persist());
+    estado.textContent = protegido
+      ? "🔒 El navegador guardará tus datos de forma permanente."
+      : "⚠️ El navegador podría borrar tus datos si le falta espacio: haz copias a menudo.";
+  } catch {
+    // Si falla no pasa nada: la app sigue funcionando igual
+  }
+}
+
 // Si la app sigue abierta al pasar la medianoche, "hoy" se queda viejo.
 // Lo comprobamos al volver a la app y cada minuto.
 function comprobarCambioDeDia() {
@@ -388,6 +667,7 @@ setInterval(comprobarCambioDeDia, 60 * 1000);
 
 // Arranque
 pintarTodo();
+protegerDatos();
 
 // PWA: registra el service worker (no funciona abriendo el archivo con file://)
 if ("serviceWorker" in navigator && location.protocol !== "file:") {

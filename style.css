@@ -254,7 +254,7 @@ aside h2 {
   text-transform: capitalize;
 }
 
-aside h3 {
+aside h3, .estadisticas h3 {
   margin: 1.2rem 0 0.5rem;
   color: var(--suave);
   font-size: 0.78rem;
@@ -312,6 +312,8 @@ aside h3 {
   background: var(--tarjeta);
 }
 #lista-cumples li::before { content: "🎂 "; }
+#lista-cumples li.editando::before { content: none; }
+.cumple-nombre { flex: 1; }
 #lista-cumples button {
   background: none;
   color: var(--suave);
@@ -322,7 +324,7 @@ aside h3 {
 /* ---------- Formularios ---------- */
 .form-fila { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
 
-input, textarea {
+input, textarea, select {
   background: var(--tarjeta);
   color: var(--texto);
   border: 1px solid var(--borde);
@@ -334,7 +336,7 @@ input, textarea {
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
-input:focus, textarea:focus {
+input:focus, textarea:focus, select:focus {
   border-color: var(--acento);
   box-shadow: 0 0 0 3px rgba(255, 138, 92, 0.2);
 }
@@ -351,6 +353,14 @@ input[type="color"] {
 .form-fila input:not([type="color"]) { flex: 1; min-width: 0; }
 .input-emoji { flex: 0 0 3.2rem !important; text-align: center; }
 
+select option { background: var(--fondo); color: var(--texto); }
+
+/* Editar un cumpleaños: el nombre arriba y la fecha debajo */
+.form-cumple-editar { flex: 1; flex-wrap: wrap; margin-top: 0; }
+.form-cumple-editar input:first-child { flex-basis: 100%; }
+.form-cumple-editar select { flex: 1; min-width: 0; }
+.input-dia { flex: 0 0 4.2rem !important; }
+
 textarea { width: 100%; min-height: 100px; resize: vertical; }
 
 details {
@@ -359,6 +369,63 @@ details {
   border-top: 1px dashed var(--borde);
 }
 summary { cursor: pointer; color: var(--acento); font-weight: 700; }
+
+/* ---------- Aviso de copia de seguridad ---------- */
+.aviso-copia {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  padding: 0.8rem 1rem;
+  margin-bottom: 1.2rem;
+  border-radius: 16px;
+  background: rgba(255, 138, 92, 0.12);
+  border: 1px solid rgba(255, 138, 92, 0.35);
+  font-weight: 700;
+}
+.aviso-copia[hidden] { display: none; }
+.aviso-copia span { flex: 1; min-width: 12rem; }
+
+/* ---------- Estadísticas ---------- */
+.estadisticas { margin-top: 1.6rem; }
+
+.lista-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+.stat-habito {
+  padding: 0.8rem 1rem;
+  border-radius: 16px;
+  background: var(--tarjeta);
+  border: 1px solid var(--borde);
+  backdrop-filter: blur(8px);
+}
+
+.stat-cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-weight: 700;
+}
+
+.stat-pct {
+  font-family: "Fredoka", "Nunito", sans-serif;
+  font-weight: 600;
+  color: var(--acento);
+}
+
+.barra {
+  height: 8px;
+  margin: 0.55rem 0;
+  border-radius: 99px;
+  background: var(--borde);
+  overflow: hidden;
+}
+.barra > div { height: 100%; border-radius: inherit; transition: width 0.3s; }
+
+.stat-detalle { margin: 0; font-size: 0.8rem; color: var(--suave); }
 
 /* ---------- Móvil ---------- */
 @media (max-width: 750px) {
