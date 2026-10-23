@@ -111,6 +111,9 @@ main {
   padding: 0 1rem 2.5rem;
 }
 
+/* Sin esto, los formularios de dentro ensanchan la columna y en el móvil se sale de la pantalla */
+main > * { min-width: 0; }
+
 /* ---------- Marcador de puntos ---------- */
 .marcador {
   display: grid;
