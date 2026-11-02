@@ -169,13 +169,18 @@ const SPRITES_PLANTA = {
   ],
 };
 
-// Dibuja una rejilla de letras como SVG de píxeles
-function sprite(filas, colores) {
+// Convierte una rejilla de letras en cuadraditos SVG, empezando en (dx, dy)
+function pixeles(filas, colores, dx = 0, dy = 0) {
   const rects = [];
   filas.forEach((fila, y) => [...fila].forEach((c, x) => {
-    if (c !== ".") rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${colores[c]}"/>`);
+    if (c !== ".") rects.push(`<rect x="${x + dx}" y="${y + dy}" width="1" height="1" fill="${colores[c]}"/>`);
   }));
-  return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${rects.join("")}</svg>`;
+  return rects.join("");
+}
+
+// Dibuja una rejilla de letras como SVG de píxeles
+function sprite(filas, colores) {
+  return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${pixeles(filas, colores)}</svg>`;
 }
 
 // brote = algún hábito, planta = la mitad o más, flor = todos
@@ -194,6 +199,127 @@ function crearPlanta(clave) {
   planta.className = `planta ${nivel}`;
   planta.innerHTML = sprite(SPRITES_PLANTA[nivel], COLORES_PLANTA);
   return planta;
+}
+
+// =====================================================
+// PAISAJE: la cabecera cambia con la hora del día
+// =====================================================
+const ANCHO_PAISAJE = 320;
+const ALTO_PAISAJE = 48;
+
+// cielo: 4 franjas de arriba a abajo
+const MOMENTOS = {
+  noche: {
+    cielo: ["#0b1026", "#111a3a", "#18234b", "#1f2c58"], lejos: "#1c2a3c", cerca: "#13231a",
+    hierba: "#1d3a24", arbol: "#0e1c12", pared: "#5e5a52", ventana: "#ffd25a", astro: "#f2ecd0",
+  },
+  amanecer: {
+    cielo: ["#3b3466", "#8a4f7d", "#e07a6a", "#f6b26b"], lejos: "#5d4a6b", cerca: "#2f4a2c",
+    hierba: "#4f7a3a", arbol: "#24401f", pared: "#c9b48f", ventana: "#ffd25a", astro: "#ffcf6b",
+  },
+  dia: {
+    cielo: ["#4b9fe0", "#67b4e9", "#8acaef", "#b4e0f4"], lejos: "#6e9c80", cerca: "#3f7a3a",
+    hierba: "#6dbb4f", arbol: "#2f6b2f", pared: "#e3d6b8", ventana: "#4d6f91", astro: "#ffe27a",
+  },
+  atardecer: {
+    cielo: ["#2d2550", "#6b3a6e", "#c8566a", "#f08a4b"], lejos: "#4b3a5c", cerca: "#2a3f2a",
+    hierba: "#466b34", arbol: "#1f331d", pared: "#b9a07c", ventana: "#ffd25a", astro: "#ffb35c",
+  },
+};
+
+const SOL = ["..XXX..", ".XXXXX.", "XXXXXXX", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX.."];
+const LUNA = ["..XXX..", ".XXX...", "XXX....", "XXX....", "XXX....", ".XXX...", "..XXX.."];
+const NUBE = ["...WWW....", ".WWWWWWW..", "WWWWWWWWWW"];
+const ARBOL = ["..T..", ".TTT.", "TTTTT", ".TTT.", "TTTTT", "..R..", "..R.."];
+const CASA = ["...AAA...", "..AAAAA..", ".AAAAAAA.", "..PPPPP..", "..PVPDP..", "..PPPDP.."];
+
+function momentoDelDia(hora) {
+  if (hora >= 6 && hora < 8) return "amanecer";
+  if (hora >= 8 && hora < 18) return "dia";
+  if (hora >= 18 && hora < 21) return "atardecer";
+  return "noche";
+}
+
+// Altura de las colinas en cada columna: dos ondas mezcladas, redondeadas a píxeles
+function alturaColina(x, base, amplitud, fase) {
+  return Math.round(base - amplitud * (Math.sin(x / 23 + fase) * 0.6 + Math.sin(x / 9 + fase * 2) * 0.4));
+}
+
+// Números "aleatorios" pero siempre iguales, para que las estrellas no salten de sitio
+function azar(semilla) {
+  let n = semilla;
+  return () => (n = (n * 16807) % 2147483647) / 2147483647;
+}
+
+function pintarPaisaje() {
+  const ahora = new Date();
+  const hora = ahora.getHours() + ahora.getMinutes() / 60;
+  const nombre = momentoDelDia(ahora.getHours());
+  const m = MOMENTOS[nombre];
+  const partes = [];
+
+  // Cielo por franjas, con una fila de píxeles alternos entre franja y franja
+  const altoFranja = 9;
+  m.cielo.forEach((color, i) => {
+    partes.push(`<rect x="0" y="${i * altoFranja}" width="${ANCHO_PAISAJE}" height="${i === 3 ? ALTO_PAISAJE : altoFranja}" fill="${color}"/>`);
+    if (i > 0) {
+      for (let x = 0; x < ANCHO_PAISAJE; x += 2) {
+        partes.push(`<rect x="${x}" y="${i * altoFranja}" width="1" height="1" fill="${m.cielo[i - 1]}"/>`);
+      }
+    }
+  });
+
+  // Estrellas de noche
+  if (nombre === "noche") {
+    const r = azar(7);
+    for (let i = 0; i < 40; i++) {
+      const brilla = i % 4 === 0 ? ' class="estrella"' : "";
+      partes.push(`<rect${brilla} x="${Math.floor(r() * ANCHO_PAISAJE)}" y="${Math.floor(r() * 28)}" width="1" height="1" fill="${i % 3 ? "#cfd8ff" : "#ffffff"}"/>`);
+    }
+  }
+
+  // El sol va de izquierda a derecha entre las 6 y las 21; la luna, entre las 21 y las 6.
+  // En pantallas estrechas solo se ve el centro del paisaje, así que el camino se acorta.
+  const contenedor = document.getElementById("paisaje");
+  const visible = Math.min(ANCHO_PAISAJE,
+    ALTO_PAISAJE * contenedor.clientWidth / Math.max(contenedor.clientHeight, 1));
+  const margen = (ANCHO_PAISAJE - visible) / 2;
+  const deDia = nombre !== "noche";
+  const recorrido = deDia ? (hora - 6) / 15 : ((hora + 24 - 21) % 24) / 9;
+  const ax = Math.round(margen + 8 + recorrido * (visible - 23));
+  const ay = Math.round(26 - Math.sin(recorrido * Math.PI) * 15);
+  partes.push(pixeles(deDia ? SOL : LUNA, { X: m.astro }, ax, ay));
+
+  // Nubes de día, que se mueven despacio
+  if (nombre === "dia") {
+    [[0, 10, 90], [1, 16, 140], [2, 7, 110]].forEach(([i, y, segundos]) => {
+      partes.push(`<g class="nube" style="animation-duration:${segundos}s;animation-delay:-${i * 40}s">${pixeles(NUBE, { W: "#ffffff" }, -12, y)}</g>`);
+    });
+  }
+
+  // Colinas: las de lejos y las de cerca, columna a columna
+  for (let x = 0; x < ANCHO_PAISAJE; x++) {
+    const lejos = alturaColina(x, 32, 6, 1);
+    partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${ALTO_PAISAJE - lejos}" fill="${m.lejos}"/>`);
+  }
+  for (let x = 0; x < ANCHO_PAISAJE; x++) {
+    const cerca = alturaColina(x, 40, 3, 4);
+    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${ALTO_PAISAJE - cerca}" fill="${m.cerca}"/>`);
+    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="1" fill="${m.hierba}"/>`);
+  }
+
+  // Árboles y una casita (su ventana se enciende de noche)
+  [40, 47, 186, 230, 236, 296].forEach(x => {
+    partes.push(pixeles(ARBOL, { T: m.arbol, R: "#4a3322" }, x, alturaColina(x + 2, 40, 3, 4) - 6));
+  });
+  partes.push(pixeles(CASA, { A: "#b4532a", P: m.pared, V: m.ventana, D: "#5b3e2b" }, 262, alturaColina(266, 40, 3, 4) - 5));
+
+  // La tierra de abajo, igual que la de cada día del calendario
+  partes.push(`<rect x="0" y="${ALTO_PAISAJE - 4}" width="${ANCHO_PAISAJE}" height="4" fill="#5b3e2b"/>`);
+  partes.push(`<rect x="0" y="${ALTO_PAISAJE - 4}" width="${ANCHO_PAISAJE}" height="1" fill="#3f2a1d"/>`);
+
+  contenedor.dataset.momento = nombre;
+  contenedor.innerHTML = `<svg viewBox="0 0 ${ANCHO_PAISAJE} ${ALTO_PAISAJE}" preserveAspectRatio="xMidYMax slice" shape-rendering="crispEdges">${partes.join("")}</svg>`;
 }
 
 // =====================================================
@@ -736,6 +862,13 @@ setInterval(comprobarCambioDeDia, 60 * 1000);
 
 // Arranque
 pintarTodo();
+pintarPaisaje();
+setInterval(pintarPaisaje, 5 * 60 * 1000);
+let esperaPaisaje;
+window.addEventListener("resize", () => {
+  clearTimeout(esperaPaisaje);
+  esperaPaisaje = setTimeout(pintarPaisaje, 200);
+});
 protegerDatos();
 
 // PWA: registra el service worker (no funciona abriendo el archivo con file://)
