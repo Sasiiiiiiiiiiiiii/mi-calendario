@@ -135,6 +135,68 @@ function puntosEntre(desde, hasta) {
 }
 
 // =====================================================
+// PLANTAS: cada día es un huerto que crece con los hábitos hechos
+// =====================================================
+const COLORES_PLANTA = { L: "#86d16a", G: "#3f8a3a", F: "#ff8fa3", Y: "#f6cf57", S: "#a8d977" };
+
+const SPRITES_PLANTA = {
+  brote: [
+    ".......",
+    ".......",
+    ".......",
+    ".L...L.",
+    ".LL.LL.",
+    "..LGL..",
+    "...G...",
+  ],
+  planta: [
+    "...S...",
+    "..SLS..",
+    ".L.G.L.",
+    "LL.G.LL",
+    ".LLGLL.",
+    "...G...",
+    "...G...",
+  ],
+  flor: [
+    "..F.F..",
+    ".FFYFF.",
+    "..FFF..",
+    "...G...",
+    "LL.G.LL",
+    ".LLGLL.",
+    "...G...",
+  ],
+};
+
+// Dibuja una rejilla de letras como SVG de píxeles
+function sprite(filas, colores) {
+  const rects = [];
+  filas.forEach((fila, y) => [...fila].forEach((c, x) => {
+    if (c !== ".") rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${colores[c]}"/>`);
+  }));
+  return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${rects.join("")}</svg>`;
+}
+
+// brote = algún hábito, planta = la mitad o más, flor = todos
+function nivelPlanta(clave) {
+  const total = datos.habitos.length;
+  const hechos = (datos.registros[clave] || []).filter(id => datos.habitos.some(h => h.id === id)).length;
+  if (!total || !hechos) return null;
+  const parte = hechos / total;
+  return parte >= 1 ? "flor" : parte >= 0.5 ? "planta" : "brote";
+}
+
+function crearPlanta(clave) {
+  const nivel = nivelPlanta(clave);
+  if (!nivel) return null;
+  const planta = document.createElement("span");
+  planta.className = `planta ${nivel}`;
+  planta.innerHTML = sprite(SPRITES_PLANTA[nivel], COLORES_PLANTA);
+  return planta;
+}
+
+// =====================================================
 // 3. PINTAR EL CALENDARIO
 // =====================================================
 function pintarCalendario() {
@@ -193,6 +255,9 @@ function pintarCalendario() {
     });
     celda.appendChild(puntos);
 
+    const planta = crearPlanta(clave);
+    if (planta) celda.appendChild(planta);
+
     celda.addEventListener("click", () => {
       diaSeleccionado = clave;
       pintarTodo();
@@ -242,7 +307,10 @@ function pintarPanel() {
   document.getElementById("aviso-bloqueo").hidden = editable;
 
   const puntos = puntosDelDia(diaSeleccionado);
-  document.getElementById("puntos-dia").textContent = `⭐ ${puntos} puntos`;
+  const lineaPuntos = document.getElementById("puntos-dia");
+  lineaPuntos.textContent = `⭐ ${puntos} puntos`;
+  const plantaDia = crearPlanta(diaSeleccionado);
+  if (plantaDia) lineaPuntos.prepend(plantaDia);
 
   // Cumpleaños de ese día
   const ul = document.getElementById("lista-cumples");

@@ -1,40 +1,47 @@
-/* ===== Tema: pixel art (oscuro) con modo claro automático =====
+/* ===== Tema: huerto pixel (oscuro) con modo claro automático =====
+   Cada día es un trocito de tierra donde crece una planta con los hábitos.
    Todo son bloques: sin bordes redondos, sin degradados, sin desenfoques.
    El "marco" son 4 sombras que dejan las esquinas mordidas, como un sprite. */
 :root {
   --px: 3px;                 /* tamaño de un "píxel" */
-  --fondo: #1c1a2e;
-  --rejilla: #232038;
-  --tarjeta: #2d2a4a;
-  --tarjeta-hover: #3a3660;
-  --luz: #474275;            /* brillo arriba-izquierda */
-  --oscuro: #211e38;         /* sombra abajo-derecha */
-  --borde: #0c0a16;
-  --sombra-color: #0c0a16;
-  --texto: #f4efe1;
-  --suave: #9f99c9;
-  --acento: #ffc23d;         /* amarillo moneda */
-  --acento-2: #ff5e7a;       /* rosa corazón */
-  --acento-texto: #ffc23d;   /* el amarillo cuando es texto suelto */
-  --texto-boton: #1c1a2e;
+  --fondo: #141c1a;
+  --rejilla: #19231f;
+  --tarjeta: #21302b;
+  --tarjeta-hover: #2b3d37;
+  --luz: #344a42;            /* brillo arriba-izquierda */
+  --oscuro: #1a2622;         /* sombra abajo-derecha */
+  --borde: #090d0c;
+  --sombra-color: #090d0c;
+  --texto: #efe6d2;
+  --suave: #93a99a;
+  --acento: #e9b949;         /* miel */
+  --acento-texto: #e9b949;   /* la miel cuando es texto suelto */
+  --acento-2: #d9673a;       /* terracota */
+  --hoja: #86d16a;
+  --tierra: #5b3e2b;
+  --tierra-2: #3f2a1d;
+  --texto-boton: #1d1a12;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --fondo: #efe4cc;
-    --rejilla: #e6d9bd;
-    --tarjeta: #fbf5e6;
-    --tarjeta-hover: #ffffff;
+    --fondo: #ebe2cc;
+    --rejilla: #e2d7bc;
+    --tarjeta: #f8f2e2;
+    --tarjeta-hover: #fffaf0;
     --luz: #ffffff;
-    --oscuro: #ddd0b2;
-    --borde: #2b2140;
-    --sombra-color: #c9b994;
-    --texto: #2b2140;
-    --suave: #7a6c8c;
-    --acento: #f2a516;
-    --acento-2: #e8435f;
-    --acento-texto: #b4580a;
-    --texto-boton: #2b2140;
+    --oscuro: #ddd2b6;
+    --borde: #2a2a22;
+    --sombra-color: #c8b98f;
+    --texto: #2a2a22;
+    --suave: #6c7660;
+    --acento: #e2a63a;
+    --acento-texto: #8e5410;
+    --acento-2: #c4552b;
+    --hoja: #4f9a3c;
+    --tierra: #a77b55;
+    --tierra-2: #8a6040;
+    --texto-boton: #2a2a22;
   }
 }
 
@@ -69,28 +76,30 @@ body {
   -webkit-font-smoothing: none;
 }
 
+/* Títulos y números con letra de píxel alta */
+header h1, .stat-valor, .numero, aside h2, .stat-pct {
+  font-family: "Jersey 10", "Pixelify Sans", monospace;
+  font-weight: 400;
+}
+
 /* ---------- Cabecera ---------- */
 header {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  padding: 1.8rem 1rem 1.4rem;
+  padding: 1.6rem 1rem 1.3rem;
 }
 
 header h1 {
   margin: 0;
   min-width: 300px;
   text-align: center;
-  font-family: "Press Start 2P", monospace;
-  font-size: 1.5rem;
-  font-weight: 400;
-  line-height: 1.4;
-  text-transform: uppercase;
+  font-size: 3.2rem;
+  line-height: 1;
+  letter-spacing: 1px;
   color: var(--acento);
-  text-shadow:
-    var(--px) var(--px) 0 var(--acento-2),
-    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--borde);
+  text-shadow: var(--px) var(--px) 0 var(--borde);
 }
 
 header button {
@@ -117,14 +126,14 @@ button {
   font-weight: 700;
   box-shadow:
     var(--marco),
-    inset var(--px) var(--px) 0 0 rgba(255, 255, 255, 0.45),
-    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 rgba(0, 0, 0, 0.25),
+    inset var(--px) var(--px) 0 0 rgba(255, 255, 255, 0.4),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 rgba(0, 0, 0, 0.22),
     var(--sombra);
 }
 
 button:hover { filter: brightness(1.08); }
 
-/* Al pulsar, el botón "baja" y desaparece la sombra, como un botón de mando */
+/* Al pulsar, el botón "baja" y desaparece la sombra */
 button:active {
   transform: translate(calc(var(--px) * 2), calc(var(--px) * 2));
   box-shadow: var(--marco), var(--hundido);
@@ -165,21 +174,20 @@ main > * { min-width: 0; }
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.9rem 0.5rem 0.7rem;
+  padding: 0.6rem 0.5rem 0.7rem;
   background: var(--tarjeta);
   box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 .stat-valor {
-  font-family: "Press Start 2P", monospace;
-  font-size: 1.3rem;
-  line-height: 1.3;
+  font-size: 2.6rem;
+  line-height: 1;
   color: var(--acento);
   text-shadow: var(--px) var(--px) 0 var(--borde);
 }
 
 .stat-nombre {
-  margin-top: 6px;
+  margin-top: 4px;
   font-size: 0.8rem;
   font-weight: 600;
   text-transform: uppercase;
@@ -196,22 +204,36 @@ main > * { min-width: 0; }
 
 .dias-semana span {
   text-align: center;
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
   text-transform: uppercase;
+  letter-spacing: 1px;
   color: var(--suave);
   padding-bottom: 8px;
 }
 
 .celda {
+  position: relative;
   background: var(--tarjeta);
-  min-height: 88px;
-  padding: 8px;
+  min-height: 92px;
+  padding: 6px 8px 16px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-shadow: var(--marco), var(--bisel), var(--sombra);
+}
+
+/* La tierra del huerto, abajo de cada día */
+.celda::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 8px;
+  background: var(--tierra);
+  box-shadow: inset 0 3px 0 0 var(--tierra-2);
 }
 
 .celda:hover {
@@ -226,6 +248,7 @@ main > * { min-width: 0; }
   cursor: default;
   box-shadow: none;
 }
+.celda.vacia::after { content: none; }
 .celda.vacia:hover { transform: none; box-shadow: none; }
 
 .celda.hoy .numero {
@@ -240,10 +263,11 @@ main > * { min-width: 0; }
 }
 
 .numero {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.75rem;
-  width: 30px;
-  height: 30px;
+  font-size: 1.35rem;
+  line-height: 1;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -258,17 +282,27 @@ main > * { min-width: 0; }
   color: var(--acento-texto);
 }
 
-.puntos { display: flex; flex-wrap: wrap; gap: 5px; }
+.puntos { display: flex; flex-wrap: wrap; gap: 5px; padding-right: 34px; }
 .punto {
   width: 10px;
   height: 10px;
   box-shadow: 2px 2px 0 0 var(--borde);
 }
 
+/* La planta crece encima de la tierra */
+.planta { display: inline-block; line-height: 0; }
+.planta svg { width: 100%; height: auto; }
+.celda .planta {
+  position: absolute;
+  right: 7px;
+  bottom: 8px;
+  width: 28px;
+}
+
 /* ---------- Panel del día ---------- */
 aside {
   background: var(--tarjeta);
-  padding: 1.4rem 1.5rem;
+  padding: 1.3rem 1.5rem 1.4rem;
   align-self: start;
   position: sticky;
   top: 1rem;
@@ -276,11 +310,9 @@ aside {
 }
 
 aside h2 {
-  margin-top: 0;
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.95rem;
-  font-weight: 400;
-  line-height: 1.6;
+  margin: 0 0 0.6rem;
+  font-size: 2.1rem;
+  line-height: 1;
   text-transform: capitalize;
   color: var(--texto);
 }
@@ -288,22 +320,22 @@ aside h2 {
 aside h3, .estadisticas h3 {
   margin: 1.4rem 0 0.6rem;
   color: var(--suave);
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.6rem;
-  font-weight: 400;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 1px;
   text-transform: uppercase;
-  line-height: 1.6;
 }
 
-/* Cuadradito delante de cada título, como un ítem de menú */
+/* Hojita delante de cada título */
 aside h3::before, .estadisticas h3::before {
   content: "";
   display: inline-block;
   width: 6px;
   height: 6px;
   margin-right: 8px;
-  vertical-align: 1px;
-  background: var(--acento-2);
+  vertical-align: 2px;
+  background: var(--hoja);
+  box-shadow: 3px -3px 0 0 var(--hoja);
 }
 
 .habito {
@@ -351,10 +383,14 @@ aside h3::before, .estadisticas h3::before {
 }
 
 .puntos-dia {
-  margin: -0.4rem 0 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  margin: 0;
   font-weight: 700;
   color: var(--acento-texto);
 }
+.puntos-dia .planta { width: 35px; }
 
 .aviso {
   margin: 0.4rem 0 0;
@@ -457,7 +493,7 @@ summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
   font-weight: 600;
   box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
-.aviso-copia button { --borde: #0c0a16; }
+.aviso-copia button { --borde: #090d0c; }
 .aviso-copia[hidden] { display: none; }
 .aviso-copia span { flex: 1; min-width: 12rem; }
 
@@ -484,13 +520,12 @@ summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
 }
 
 .stat-pct {
-  font-family: "Press Start 2P", monospace;
-  font-size: 0.75rem;
-  align-self: center;
+  font-size: 1.5rem;
+  line-height: 1;
   color: var(--acento-texto);
 }
 
-/* Barra de vida por bloques */
+/* Barra por bloques */
 .barra {
   position: relative;
   height: 14px;
@@ -513,15 +548,17 @@ summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
   main { grid-template-columns: 1fr; }
   aside { position: static; }
   .dias-semana, .calendario { gap: 8px; }
-  .dias-semana span { font-size: 0.45rem; }
-  .celda { min-height: 58px; padding: 4px; --px: 2px; }
+  .dias-semana span { font-size: 0.7rem; letter-spacing: 0; }
+  /* En el móvil cada día solo enseña el número y la planta */
+  .celda { min-height: 62px; padding: 3px 3px 14px; --px: 2px; }
   .celda.seleccionado { --px: 3px; }
-  .numero { font-size: 0.6rem; width: 24px; height: 24px; }
-  .punto { width: 7px; height: 7px; }
-  .puntos { gap: 3px; }
+  .celda::after { height: 6px; box-shadow: inset 0 2px 0 0 var(--tierra-2); }
+  .celda .planta { width: 14px; right: 50%; bottom: 6px; transform: translateX(50%); }
+  .puntos { display: none; }
+  .numero { font-size: 1.15rem; min-width: 22px; height: 22px; }
   header { gap: 1rem; }
-  header h1 { font-size: 0.95rem; min-width: 0; }
+  header h1 { font-size: 2.2rem; min-width: 0; }
   .marcador { grid-template-columns: repeat(2, 1fr); }
-  .stat-valor { font-size: 1rem; }
+  .stat-valor { font-size: 2.2rem; }
   .pts-celda { display: none; }
 }
