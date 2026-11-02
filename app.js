@@ -207,37 +207,71 @@ function crearPlanta(clave) {
 const ANCHO_PAISAJE = 320;
 const ALTO_PAISAJE = 48;
 
-// cielo: 4 franjas de arriba a abajo
+// cielo: 4 franjas de arriba a abajo. tinte: color con el que se oscurece el campo
 const MOMENTOS = {
   noche: {
-    cielo: ["#0b1026", "#111a3a", "#18234b", "#1f2c58"], lejos: "#1c2a3c", cerca: "#13231a",
-    hierba: "#1d3a24", arbol: "#0e1c12", pared: "#5e5a52", ventana: "#ffd25a", astro: "#f2ecd0",
+    cielo: ["#0b1026", "#111a3a", "#18234b", "#1f2c58"], tinte: ["#0b1026", 0.7],
+    pared: "#5e5a52", ventana: "#ffd25a", astro: "#f2ecd0",
   },
   amanecer: {
-    cielo: ["#3b3466", "#8a4f7d", "#e07a6a", "#f6b26b"], lejos: "#5d4a6b", cerca: "#2f4a2c",
-    hierba: "#4f7a3a", arbol: "#24401f", pared: "#c9b48f", ventana: "#ffd25a", astro: "#ffcf6b",
+    cielo: ["#3b3466", "#8a4f7d", "#e07a6a", "#f6b26b"], tinte: ["#3b2a4a", 0.35],
+    pared: "#c9b48f", ventana: "#ffd25a", astro: "#ffcf6b",
   },
   dia: {
-    cielo: ["#4b9fe0", "#67b4e9", "#8acaef", "#b4e0f4"], lejos: "#6e9c80", cerca: "#3f7a3a",
-    hierba: "#6dbb4f", arbol: "#2f6b2f", pared: "#e3d6b8", ventana: "#4d6f91", astro: "#ffe27a",
+    cielo: ["#4b9fe0", "#67b4e9", "#8acaef", "#b4e0f4"], tinte: ["#000000", 0],
+    pared: "#e3d6b8", ventana: "#4d6f91", astro: "#ffe27a",
   },
   atardecer: {
-    cielo: ["#2d2550", "#6b3a6e", "#c8566a", "#f08a4b"], lejos: "#4b3a5c", cerca: "#2a3f2a",
-    hierba: "#466b34", arbol: "#1f331d", pared: "#b9a07c", ventana: "#ffd25a", astro: "#ffb35c",
+    cielo: ["#2d2550", "#6b3a6e", "#c8566a", "#f08a4b"], tinte: ["#2d2040", 0.4],
+    pared: "#b9a07c", ventana: "#ffd25a", astro: "#ffb35c",
+  },
+};
+
+// Colores del campo a pleno día en cada estación (por la noche se oscurecen con el tinte)
+// arboles: uno por árbol, en orden; nieve: color de lo que cubre copas y tejado
+const ESTACIONES = {
+  invierno: {
+    lejos: "#9aa8b8", cumbre: "#e6ecf3", cerca: "#7f8f86", hierba: "#f2f4f7",
+    arboles: ["#2c4a3c"], flor: null, nieve: "#f2f4f7",
+  },
+  primavera: {
+    lejos: "#7aa88a", cumbre: null, cerca: "#4a8a3e", hierba: "#8fd66a",
+    arboles: ["#3c8a3a"], flor: "#ff9fb3", nieve: null,
+  },
+  verano: {
+    lejos: "#6e9c80", cumbre: null, cerca: "#3f7a3a", hierba: "#7cc44a",
+    arboles: ["#2f6b2f"], flor: null, nieve: null,
+  },
+  otono: {
+    lejos: "#a08a5e", cumbre: null, cerca: "#6b6a32", hierba: "#b8913a",
+    arboles: ["#d9673a", "#e9a23b", "#b4432a"], flor: null, nieve: null,
   },
 };
 
 const SOL = ["..XXX..", ".XXXXX.", "XXXXXXX", "XXXXXXX", "XXXXXXX", ".XXXXX.", "..XXX.."];
 const LUNA = ["..XXX..", ".XXX...", "XXX....", "XXX....", "XXX....", ".XXX...", "..XXX.."];
 const NUBE = ["...WWW....", ".WWWWWWW..", "WWWWWWWWWW"];
-const ARBOL = ["..T..", ".TTT.", "TTTTT", ".TTT.", "TTTTT", "..R..", "..R.."];
-const CASA = ["...AAA...", "..AAAAA..", ".AAAAAAA.", "..PPPPP..", "..PVPDP..", "..PPPDP.."];
+// N = nieve en la punta (en invierno), B = flores en primavera
+const ARBOL = ["..N..", ".TBT.", "TTTTT", ".BTT.", "TTTTT", "..R..", "..R.."];
+const CASA = ["...NNN...", "..AAAAA..", ".AAAAAAA.", "..PPPPP..", "..PVPDP..", "..PPPDP.."];
 
 function momentoDelDia(hora) {
   if (hora >= 6 && hora < 8) return "amanecer";
   if (hora >= 8 && hora < 18) return "dia";
   if (hora >= 18 && hora < 21) return "atardecer";
   return "noche";
+}
+
+// Estaciones del hemisferio norte por meses: dic-feb invierno, mar-may primavera...
+function estacionDelAño(mes) {
+  return ["invierno", "primavera", "verano", "otono"][Math.floor(((mes + 1) % 12) / 3)];
+}
+
+// Mezcla dos colores "#rrggbb": t = 0 es el primero, t = 1 el segundo
+function mezclar(color, hacia, t) {
+  const a = [1, 3, 5].map(i => parseInt(color.slice(i, i + 2), 16));
+  const b = [1, 3, 5].map(i => parseInt(hacia.slice(i, i + 2), 16));
+  return "#" + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, "0")).join("");
 }
 
 // Altura de las colinas en cada columna: dos ondas mezcladas, redondeadas a píxeles
@@ -251,11 +285,27 @@ function azar(semilla) {
   return () => (n = (n * 16807) % 2147483647) / 2147483647;
 }
 
+// Cosas que caen (copos o hojas): cada una con su velocidad y su retraso
+function particulas(clase, cantidad, colores, semilla) {
+  const r = azar(semilla);
+  const partes = [];
+  for (let i = 0; i < cantidad; i++) {
+    const x = Math.floor(r() * ANCHO_PAISAJE);
+    const segundos = (clase === "copo" ? 7 : 10) + r() * 6;
+    partes.push(`<rect class="${clase}" style="animation-duration:${segundos.toFixed(1)}s;animation-delay:-${(r() * segundos).toFixed(1)}s" x="${x}" y="-2" width="1" height="1" fill="${colores[i % colores.length]}"/>`);
+  }
+  return partes.join("");
+}
+
 function pintarPaisaje() {
   const ahora = new Date();
   const hora = ahora.getHours() + ahora.getMinutes() / 60;
   const nombre = momentoDelDia(ahora.getHours());
+  // La estación es la del mes que se está mirando; la hora del cielo, la de ahora
+  const estacion = estacionDelAño(mesVisible.getMonth());
   const m = MOMENTOS[nombre];
+  const e = ESTACIONES[estacion];
+  const campo = color => mezclar(color, m.tinte[0], m.tinte[1]);
   const partes = [];
 
   // Cielo por franjas, con una fila de píxeles alternos entre franja y franja
@@ -297,28 +347,57 @@ function pintarPaisaje() {
     });
   }
 
-  // Colinas: las de lejos y las de cerca, columna a columna
+  // Colinas: las de lejos (con nieve en la cumbre en invierno) y las de cerca
   for (let x = 0; x < ANCHO_PAISAJE; x++) {
     const lejos = alturaColina(x, 32, 6, 1);
-    partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${ALTO_PAISAJE - lejos}" fill="${m.lejos}"/>`);
+    partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${ALTO_PAISAJE - lejos}" fill="${campo(e.lejos)}"/>`);
+    if (e.cumbre && lejos < 31) {
+      partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${31 - lejos}" fill="${campo(e.cumbre)}"/>`);
+    }
   }
+  const flores = azar(11);
   for (let x = 0; x < ANCHO_PAISAJE; x++) {
     const cerca = alturaColina(x, 40, 3, 4);
-    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${ALTO_PAISAJE - cerca}" fill="${m.cerca}"/>`);
-    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="1" fill="${m.hierba}"/>`);
+    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${ALTO_PAISAJE - cerca}" fill="${campo(e.cerca)}"/>`);
+    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${e.nieve ? 2 : 1}" fill="${campo(e.hierba)}"/>`);
+    // Florecitas en primavera
+    if (e.flor && flores() < 0.12) {
+      const color = flores() < 0.5 ? e.flor : "#f6cf57";
+      partes.push(`<rect x="${x}" y="${cerca - 1}" width="1" height="1" fill="${campo(color)}"/>`);
+    }
   }
 
   // Árboles y una casita (su ventana se enciende de noche)
-  [40, 47, 186, 230, 236, 296].forEach(x => {
-    partes.push(pixeles(ARBOL, { T: m.arbol, R: "#4a3322" }, x, alturaColina(x + 2, 40, 3, 4) - 6));
+  [40, 47, 186, 230, 236, 296].forEach((x, i) => {
+    const hojas = campo(e.arboles[i % e.arboles.length]);
+    partes.push(pixeles(ARBOL, {
+      T: hojas,
+      N: e.nieve ? campo(e.nieve) : hojas,
+      B: e.flor ? campo(e.flor) : hojas,
+      R: campo("#4a3322"),
+    }, x, alturaColina(x + 2, 40, 3, 4) - 6));
   });
-  partes.push(pixeles(CASA, { A: "#b4532a", P: m.pared, V: m.ventana, D: "#5b3e2b" }, 262, alturaColina(266, 40, 3, 4) - 5));
+  partes.push(pixeles(CASA, {
+    A: campo("#b4532a"), N: campo(e.nieve || "#b4532a"), P: campo(m.pared), V: m.ventana, D: campo("#5b3e2b"),
+  }, 262, alturaColina(266, 40, 3, 4) - 5));
+
+  // Copos en invierno, hojas en otoño, luciérnagas las noches de verano
+  if (estacion === "invierno") partes.push(particulas("copo", 45, ["#ffffff", "#dfe8f5"], 3));
+  if (estacion === "otono") partes.push(particulas("hoja", 14, ["#d9673a", "#e9a23b", "#b4432a"], 5));
+  if (estacion === "verano" && nombre === "noche") {
+    const r = azar(13);
+    for (let i = 0; i < 14; i++) {
+      const x = Math.floor(r() * ANCHO_PAISAJE);
+      partes.push(`<rect class="luciernaga" style="animation-delay:-${(r() * 4).toFixed(1)}s" x="${x}" y="${alturaColina(x, 40, 3, 4) - 2 - Math.floor(r() * 6)}" width="1" height="1" fill="#e8ff7a"/>`);
+    }
+  }
 
   // La tierra de abajo, igual que la de cada día del calendario
   partes.push(`<rect x="0" y="${ALTO_PAISAJE - 4}" width="${ANCHO_PAISAJE}" height="4" fill="#5b3e2b"/>`);
   partes.push(`<rect x="0" y="${ALTO_PAISAJE - 4}" width="${ANCHO_PAISAJE}" height="1" fill="#3f2a1d"/>`);
 
   contenedor.dataset.momento = nombre;
+  contenedor.dataset.estacion = estacion;
   contenedor.innerHTML = `<svg viewBox="0 0 ${ANCHO_PAISAJE} ${ALTO_PAISAJE}" preserveAspectRatio="xMidYMax slice" shape-rendering="crispEdges">${partes.join("")}</svg>`;
 }
 
@@ -332,6 +411,10 @@ function pintarCalendario() {
   const año = mesVisible.getFullYear();
   const mes = mesVisible.getMonth();
   document.getElementById("titulo-mes").textContent = `${MESES[mes]} ${año}`;
+
+  // Si al cambiar de mes cambia la estación, se repinta el paisaje
+  const paisaje = document.getElementById("paisaje");
+  if (paisaje.dataset.estacion && paisaje.dataset.estacion !== estacionDelAño(mes)) pintarPaisaje();
 
   // getDay() devuelve 0 = domingo. Lo ajustamos para que lunes = 0
   const huecosIniciales = (new Date(año, mes, 1).getDay() + 6) % 7;

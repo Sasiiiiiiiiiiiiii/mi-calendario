@@ -107,8 +107,24 @@ header {
 .estrella:nth-of-type(2n) { animation-delay: -1.5s; }
 @keyframes brillo { 50% { opacity: 0.2; } }
 
+/* Copos y hojas caen hasta el suelo; las hojas se mecen un poco */
+.copo { animation: copo 8s steps(50) infinite; }
+@keyframes copo { to { transform: translate(6px, 50px); } }
+.hoja { animation: hoja 12s steps(50) infinite; }
+@keyframes hoja {
+  25% { transform: translate(6px, 12px); }
+  50% { transform: translate(-2px, 25px); }
+  75% { transform: translate(8px, 37px); }
+  to { transform: translate(2px, 50px); }
+}
+
+/* Luciérnagas: se encienden y se apagan */
+.luciernaga { animation: luciernaga 4s steps(1) infinite; }
+@keyframes luciernaga { 0%, 60% { opacity: 0; } 70%, 90% { opacity: 1; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .nube, .estrella { animation: none; }
+  .nube, .estrella, .copo, .hoja, .luciernaga { animation: none; }
+  .copo, .hoja { display: none; }
 }
 
 header h1 {
