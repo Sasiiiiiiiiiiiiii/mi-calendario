@@ -225,6 +225,7 @@ function pintarPanel() {
     check.checked = hechos.includes(h.id);
     check.disabled = !editable;
     check.style.accentColor = h.color;
+    check.style.setProperty("--color", h.color);
     check.addEventListener("change", () => alternarHabito(h.id));
     label.append(check, `${h.emoji} ${h.nombre}`);
 

@@ -1,42 +1,72 @@
-/* ===== Tema: noche suave (oscuro) con modo claro automático ===== */
+/* ===== Tema: pixel art (oscuro) con modo claro automático =====
+   Todo son bloques: sin bordes redondos, sin degradados, sin desenfoques.
+   El "marco" son 4 sombras que dejan las esquinas mordidas, como un sprite. */
 :root {
-  --fondo: #0f1020;
-  --fondo-2: #1a1640;
-  --tarjeta: rgba(255, 255, 255, 0.06);
-  --tarjeta-hover: rgba(255, 255, 255, 0.11);
-  --borde: rgba(255, 255, 255, 0.10);
-  --texto: #ecebff;
-  --suave: #9a98c3;
-  --acento: #ff8a5c;
-  --acento-2: #c86bfa;
-  --sombra: 0 10px 30px rgba(0, 0, 0, 0.35);
+  --px: 3px;                 /* tamaño de un "píxel" */
+  --fondo: #1c1a2e;
+  --rejilla: #232038;
+  --tarjeta: #2d2a4a;
+  --tarjeta-hover: #3a3660;
+  --luz: #474275;            /* brillo arriba-izquierda */
+  --oscuro: #211e38;         /* sombra abajo-derecha */
+  --borde: #0c0a16;
+  --sombra-color: #0c0a16;
+  --texto: #f4efe1;
+  --suave: #9f99c9;
+  --acento: #ffc23d;         /* amarillo moneda */
+  --acento-2: #ff5e7a;       /* rosa corazón */
+  --acento-texto: #ffc23d;   /* el amarillo cuando es texto suelto */
+  --texto-boton: #1c1a2e;
 }
 
 @media (prefers-color-scheme: light) {
   :root {
-    --fondo: #fdf6ee;
-    --fondo-2: #f3e8ff;
-    --tarjeta: rgba(255, 255, 255, 0.75);
+    --fondo: #efe4cc;
+    --rejilla: #e6d9bd;
+    --tarjeta: #fbf5e6;
     --tarjeta-hover: #ffffff;
-    --borde: rgba(60, 40, 90, 0.10);
-    --texto: #2a2140;
-    --suave: #85799c;
-    --sombra: 0 10px 30px rgba(80, 50, 120, 0.12);
+    --luz: #ffffff;
+    --oscuro: #ddd0b2;
+    --borde: #2b2140;
+    --sombra-color: #c9b994;
+    --texto: #2b2140;
+    --suave: #7a6c8c;
+    --acento: #f2a516;
+    --acento-2: #e8435f;
+    --acento-texto: #b4580a;
+    --texto-boton: #2b2140;
   }
 }
 
-* { box-sizing: border-box; }
+/* Definido en * (no en :root) para que cambiar --borde en un elemento cambie su marco */
+* {
+  box-sizing: border-box;
+  --marco:
+    0 calc(var(--px) * -1) 0 0 var(--borde),
+    0 var(--px) 0 0 var(--borde),
+    calc(var(--px) * -1) 0 0 0 var(--borde),
+    var(--px) 0 0 0 var(--borde);
+  --bisel:
+    inset var(--px) var(--px) 0 0 var(--luz),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 var(--oscuro);
+  --hundido:
+    inset var(--px) var(--px) 0 0 var(--oscuro);
+  --sombra: calc(var(--px) * 2) calc(var(--px) * 2) 0 0 var(--sombra-color);
+}
 
 body {
   margin: 0;
   min-height: 100vh;
-  font-family: "Nunito", system-ui, sans-serif;
+  font-family: "Pixelify Sans", monospace;
+  font-size: 1.05rem;
   color: var(--texto);
-  background:
-    radial-gradient(circle at 15% 10%, var(--fondo-2), transparent 45%),
-    radial-gradient(circle at 90% 90%, rgba(255, 138, 92, 0.15), transparent 40%),
-    var(--fondo);
-  background-attachment: fixed;
+  background-color: var(--fondo);
+  /* Cuadrícula de fondo, como papel de libreta de sprites */
+  background-image:
+    linear-gradient(var(--rejilla) 2px, transparent 2px),
+    linear-gradient(90deg, var(--rejilla) 2px, transparent 2px);
+  background-size: 24px 24px;
+  -webkit-font-smoothing: none;
 }
 
 /* ---------- Cabecera ---------- */
@@ -45,31 +75,31 @@ header {
   align-items: center;
   justify-content: center;
   gap: 1.5rem;
-  padding: 1.8rem 1rem 1.2rem;
+  padding: 1.8rem 1rem 1.4rem;
 }
 
 header h1 {
   margin: 0;
-  min-width: 260px;
+  min-width: 300px;
   text-align: center;
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-size: 2.2rem;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  background: linear-gradient(90deg, var(--acento), var(--acento-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-family: "Press Start 2P", monospace;
+  font-size: 1.5rem;
+  font-weight: 400;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--acento);
+  text-shadow:
+    var(--px) var(--px) 0 var(--acento-2),
+    calc(var(--px) * 2) calc(var(--px) * 2) 0 var(--borde);
 }
 
 header button {
   width: 44px;
   height: 44px;
   padding: 0;
-  border-radius: 50%;
   background: var(--tarjeta);
   color: var(--texto);
-  border: 1px solid var(--borde);
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 header button:hover { background: var(--tarjeta-hover); }
@@ -78,34 +108,43 @@ header button:hover { background: var(--tarjeta-hover); }
 button {
   cursor: pointer;
   border: none;
-  background: linear-gradient(135deg, var(--acento), var(--acento-2));
-  color: white;
-  border-radius: 12px;
-  padding: 0.55rem 1rem;
-  font-size: 0.95rem;
+  border-radius: 0;
+  background: var(--acento);
+  color: var(--texto-boton);
+  padding: 0.5rem 1rem;
+  font-size: 1rem;
   font-family: inherit;
   font-weight: 700;
-  transition: transform 0.15s, filter 0.15s;
+  box-shadow:
+    var(--marco),
+    inset var(--px) var(--px) 0 0 rgba(255, 255, 255, 0.45),
+    inset calc(var(--px) * -1) calc(var(--px) * -1) 0 0 rgba(0, 0, 0, 0.25),
+    var(--sombra);
 }
 
-button:hover { transform: translateY(-1px); filter: brightness(1.08); }
-button:active { transform: translateY(0); }
+button:hover { filter: brightness(1.08); }
+
+/* Al pulsar, el botón "baja" y desaparece la sombra, como un botón de mando */
+button:active {
+  transform: translate(calc(var(--px) * 2), calc(var(--px) * 2));
+  box-shadow: var(--marco), var(--hundido);
+}
 
 #btn-hoy {
-  margin-top: 1rem;
+  margin-top: 1.2rem;
 }
 
 .btn-secundario {
   background: var(--tarjeta);
   color: var(--texto);
-  border: 1px solid var(--borde);
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 /* ---------- Layout ---------- */
 main {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 1.8rem;
+  gap: 2rem;
   max-width: 1150px;
   margin: 0 auto;
   padding: 0 1rem 2.5rem;
@@ -118,37 +157,31 @@ main > * { min-width: 0; }
 .marcador {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 10px;
-  margin-bottom: 1.4rem;
+  gap: 14px;
+  margin-bottom: 1.6rem;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.9rem 0.5rem;
-  border-radius: 18px;
+  padding: 0.9rem 0.5rem 0.7rem;
   background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  backdrop-filter: blur(8px);
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 .stat-valor {
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-size: 1.9rem;
-  font-weight: 600;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-  background: linear-gradient(90deg, var(--acento), var(--acento-2));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  font-family: "Press Start 2P", monospace;
+  font-size: 1.3rem;
+  line-height: 1.3;
+  color: var(--acento);
+  text-shadow: var(--px) var(--px) 0 var(--borde);
 }
 
 .stat-nombre {
-  margin-top: 2px;
-  font-size: 0.72rem;
-  font-weight: 800;
+  margin-top: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 1px;
   color: var(--suave);
@@ -158,63 +191,59 @@ main > * { min-width: 0; }
 .dias-semana, .calendario {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: 8px;
+  gap: 12px;
 }
 
 .dias-semana span {
   text-align: center;
-  font-size: 0.8rem;
-  font-weight: 800;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.6rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
   color: var(--suave);
-  padding-bottom: 6px;
+  padding-bottom: 8px;
 }
 
 .celda {
   background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 16px;
   min-height: 88px;
   padding: 8px;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  backdrop-filter: blur(8px);
-  transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 .celda:hover {
   background: var(--tarjeta-hover);
-  transform: translateY(-3px);
-  box-shadow: var(--sombra);
+  transform: translate(calc(var(--px) * -1), calc(var(--px) * -1));
+  box-shadow: var(--marco), var(--bisel),
+    calc(var(--px) * 3) calc(var(--px) * 3) 0 0 var(--sombra-color);
 }
 
 .celda.vacia {
   background: transparent;
-  border-color: transparent;
   cursor: default;
-  backdrop-filter: none;
+  box-shadow: none;
 }
 .celda.vacia:hover { transform: none; box-shadow: none; }
 
 .celda.hoy .numero {
-  background: linear-gradient(135deg, var(--acento), var(--acento-2));
-  color: white;
-  box-shadow: 0 0 14px rgba(255, 138, 92, 0.55);
+  background: var(--acento);
+  color: var(--texto-boton);
+  box-shadow: var(--px) var(--px) 0 0 var(--borde);
 }
 
 .celda.seleccionado {
-  border: 2px solid var(--acento);
-  box-shadow: 0 0 0 4px rgba(255, 138, 92, 0.18);
+  --borde: var(--acento-2);
+  --px: 4px;
 }
 
 .numero {
-  font-weight: 800;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.75rem;
   width: 30px;
   height: 30px;
-  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -224,95 +253,124 @@ main > * { min-width: 0; }
 
 .pts-celda {
   margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 800;
-  color: var(--acento);
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--acento-texto);
 }
 
-.puntos { display: flex; flex-wrap: wrap; gap: 4px; }
+.puntos { display: flex; flex-wrap: wrap; gap: 5px; }
 .punto {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.08);
+  width: 10px;
+  height: 10px;
+  box-shadow: 2px 2px 0 0 var(--borde);
 }
 
 /* ---------- Panel del día ---------- */
 aside {
   background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  border-radius: 22px;
   padding: 1.4rem 1.5rem;
   align-self: start;
   position: sticky;
   top: 1rem;
-  backdrop-filter: blur(14px);
-  box-shadow: var(--sombra);
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 aside h2 {
   margin-top: 0;
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-weight: 600;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.95rem;
+  font-weight: 400;
+  line-height: 1.6;
   text-transform: capitalize;
+  color: var(--texto);
 }
 
 aside h3, .estadisticas h3 {
-  margin: 1.2rem 0 0.5rem;
+  margin: 1.4rem 0 0.6rem;
   color: var(--suave);
-  font-size: 0.78rem;
-  font-weight: 800;
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.6rem;
+  font-weight: 400;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  line-height: 1.6;
+}
+
+/* Cuadradito delante de cada título, como un ítem de menú */
+aside h3::before, .estadisticas h3::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 8px;
+  vertical-align: 1px;
+  background: var(--acento-2);
 }
 
 .habito {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: 0.7rem;
   padding: 0.55rem 0.7rem;
-  margin-bottom: 6px;
-  border-radius: 12px;
-  background: var(--tarjeta);
-  font-size: 1.05rem;
-  font-weight: 600;
+  margin-bottom: 10px;
+  background: var(--fondo);
+  font-size: 1.1rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s;
+  box-shadow: var(--marco), var(--hundido);
 }
 
-.habito:hover { background: var(--tarjeta-hover); }
-.habito input { width: 19px; height: 19px; cursor: pointer; }
-.habito.bloqueado { opacity: 0.55; cursor: not-allowed; }
+.habito:hover { background: var(--oscuro); }
+
+/* Casilla cuadrada de píxeles; el color lo pone app.js en --color */
+.habito input {
+  appearance: none;
+  -webkit-appearance: none;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 0;
+  background: var(--tarjeta);
+  box-shadow: var(--marco), var(--hundido);
+}
+.habito input:checked {
+  background: var(--color, var(--acento));
+  box-shadow: var(--marco), inset 4px 4px 0 0 rgba(255, 255, 255, 0.35);
+}
+.habito input:focus-visible { outline: 2px dashed var(--acento); outline-offset: 5px; }
+.habito.bloqueado { opacity: 0.5; cursor: not-allowed; }
 .habito.bloqueado input { cursor: not-allowed; }
 
 .racha {
   margin-left: auto;
-  font-size: 0.85rem;
-  font-weight: 800;
-  color: var(--acento);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--acento-texto);
 }
 
 .puntos-dia {
   margin: -0.4rem 0 0;
-  font-weight: 800;
-  color: var(--acento);
+  font-weight: 700;
+  color: var(--acento-texto);
 }
 
 .aviso {
-  margin: 0.3rem 0 0;
-  font-size: 0.8rem;
+  margin: 0.4rem 0 0;
+  font-size: 0.9rem;
   color: var(--suave);
 }
 
-#lista-cumples { list-style: none; padding: 0; margin: 0.3rem 0; }
+#lista-cumples { list-style: none; padding: 0; margin: 0.4rem 0; }
 #lista-cumples li {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 0.4rem 0.7rem;
-  margin-bottom: 5px;
-  border-radius: 10px;
-  background: var(--tarjeta);
+  margin-bottom: 9px;
+  background: var(--fondo);
+  box-shadow: var(--marco), var(--hundido);
 }
 #lista-cumples li::before { content: "🎂 "; }
 #lista-cumples li.editando::before { content: none; }
@@ -322,36 +380,46 @@ aside h3, .estadisticas h3 {
   color: var(--suave);
   padding: 0 0.4rem;
   margin-left: auto;
+  box-shadow: none;
+}
+#lista-cumples button:active { transform: none; }
+#lista-cumples .form-cumple-editar button {
+  background: var(--acento);
+  color: var(--texto-boton);
+  padding: 0.5rem 1rem;
+  box-shadow: var(--marco), var(--sombra);
 }
 
 /* ---------- Formularios ---------- */
-.form-fila { display: flex; gap: 0.5rem; margin-top: 0.5rem; }
+.form-fila { display: flex; gap: 0.8rem; margin-top: 0.7rem; }
 
 input, textarea, select {
-  background: var(--tarjeta);
+  background: var(--fondo);
   color: var(--texto);
-  border: 1px solid var(--borde);
-  border-radius: 12px;
-  padding: 0.55rem 0.7rem;
-  font-size: 0.95rem;
+  border: none;
+  border-radius: 0;
+  padding: 0.5rem 0.7rem;
+  font-size: 1rem;
   font-family: inherit;
   outline: none;
-  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: var(--marco), var(--hundido);
 }
 
 input:focus, textarea:focus, select:focus {
-  border-color: var(--acento);
-  box-shadow: 0 0 0 3px rgba(255, 138, 92, 0.2);
+  --borde: var(--acento);
 }
 
 input::placeholder, textarea::placeholder { color: var(--suave); }
 
 input[type="color"] {
-  padding: 2px;
+  padding: 3px;
   width: 42px;
   height: 38px;
   cursor: pointer;
 }
+input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+input[type="color"]::-webkit-color-swatch { border: none; border-radius: 0; }
+input[type="color"]::-moz-color-swatch { border: none; border-radius: 0; }
 
 .form-fila input:not([type="color"]) { flex: 1; min-width: 0; }
 .input-emoji { flex: 0 0 3.2rem !important; text-align: center; }
@@ -364,78 +432,96 @@ select option { background: var(--fondo); color: var(--texto); }
 .form-cumple-editar select { flex: 1; min-width: 0; }
 .input-dia { flex: 0 0 4.2rem !important; }
 
-textarea { width: 100%; min-height: 100px; resize: vertical; }
+textarea { width: 100%; min-height: 100px; resize: vertical; line-height: 1.4; }
 
 details {
-  margin-top: 1.3rem;
+  margin-top: 1.4rem;
   padding-top: 1rem;
-  border-top: 1px dashed var(--borde);
+  /* Línea de puntos cuadrados */
+  background-image: linear-gradient(90deg, var(--suave) 50%, transparent 50%);
+  background-size: 8px 3px;
+  background-repeat: repeat-x;
 }
-summary { cursor: pointer; color: var(--acento); font-weight: 700; }
+summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
 
 /* ---------- Aviso de copia de seguridad ---------- */
 .aviso-copia {
+  --borde: var(--acento-2);
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 0.6rem;
+  gap: 0.8rem;
   padding: 0.8rem 1rem;
-  margin-bottom: 1.2rem;
-  border-radius: 16px;
-  background: rgba(255, 138, 92, 0.12);
-  border: 1px solid rgba(255, 138, 92, 0.35);
-  font-weight: 700;
+  margin-bottom: 1.6rem;
+  background: var(--tarjeta);
+  font-weight: 600;
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
+.aviso-copia button { --borde: #0c0a16; }
 .aviso-copia[hidden] { display: none; }
 .aviso-copia span { flex: 1; min-width: 12rem; }
 
 /* ---------- Estadísticas ---------- */
-.estadisticas { margin-top: 1.6rem; }
+.estadisticas { margin-top: 1.8rem; }
 
 .lista-stats {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 10px;
+  gap: 14px;
 }
 
 .stat-habito {
   padding: 0.8rem 1rem;
-  border-radius: 16px;
   background: var(--tarjeta);
-  border: 1px solid var(--borde);
-  backdrop-filter: blur(8px);
+  box-shadow: var(--marco), var(--bisel), var(--sombra);
 }
 
 .stat-cabecera {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 .stat-pct {
-  font-family: "Fredoka", "Nunito", sans-serif;
-  font-weight: 600;
-  color: var(--acento);
+  font-family: "Press Start 2P", monospace;
+  font-size: 0.75rem;
+  align-self: center;
+  color: var(--acento-texto);
 }
 
+/* Barra de vida por bloques */
 .barra {
-  height: 8px;
-  margin: 0.55rem 0;
-  border-radius: 99px;
-  background: var(--borde);
-  overflow: hidden;
+  position: relative;
+  height: 14px;
+  margin: 0.7rem 0;
+  background: var(--fondo);
+  box-shadow: var(--marco);
 }
-.barra > div { height: 100%; border-radius: inherit; transition: width 0.3s; }
+.barra > div { height: 100%; transition: width 0.3s steps(6); }
+.barra::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(90deg, transparent 0 10px, var(--fondo) 10px 13px);
+}
 
-.stat-detalle { margin: 0; font-size: 0.8rem; color: var(--suave); }
+.stat-detalle { margin: 0; font-size: 0.9rem; color: var(--suave); }
 
 /* ---------- Móvil ---------- */
 @media (max-width: 750px) {
   main { grid-template-columns: 1fr; }
   aside { position: static; }
-  .celda { min-height: 58px; border-radius: 12px; padding: 5px; }
-  header h1 { font-size: 1.6rem; min-width: 0; }
+  .dias-semana, .calendario { gap: 8px; }
+  .dias-semana span { font-size: 0.45rem; }
+  .celda { min-height: 58px; padding: 4px; --px: 2px; }
+  .celda.seleccionado { --px: 3px; }
+  .numero { font-size: 0.6rem; width: 24px; height: 24px; }
+  .punto { width: 7px; height: 7px; }
+  .puntos { gap: 3px; }
+  header { gap: 1rem; }
+  header h1 { font-size: 0.95rem; min-width: 0; }
   .marcador { grid-template-columns: repeat(2, 1fr); }
+  .stat-valor { font-size: 1rem; }
   .pts-celda { display: none; }
 }
