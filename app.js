@@ -135,39 +135,16 @@ function puntosEntre(desde, hasta) {
 }
 
 // =====================================================
-// PLANTAS: cada día es un huerto que crece con los hábitos hechos
+// FLORES: cada hábito tiene su flor, de su color; cada día crece una por hábito hecho
 // =====================================================
-const COLORES_PLANTA = { L: "#86d16a", G: "#3f8a3a", F: "#ff8fa3", Y: "#f6cf57", S: "#a8d977" };
-
-const SPRITES_PLANTA = {
-  brote: [
-    ".......",
-    ".......",
-    ".......",
-    ".L...L.",
-    ".LL.LL.",
-    "..LGL..",
-    "...G...",
-  ],
-  planta: [
-    "...S...",
-    "..SLS..",
-    ".L.G.L.",
-    "LL.G.LL",
-    ".LLGLL.",
-    "...G...",
-    "...G...",
-  ],
-  flor: [
-    "..F.F..",
-    ".FFYFF.",
-    "..FFF..",
-    "...G...",
-    "LL.G.LL",
-    ".LLGLL.",
-    "...G...",
-  ],
-};
+// C = pétalos (el color del hábito), Y = centro, G = tallo, L = hojas
+const FORMAS_FLOR = [
+  [".C.C.", "CCYCC", ".C.C.", "..G..", "LLG..", "..GLL", "..G.."], // margarita
+  ["C.C.C", "CCCCC", ".CCC.", "..G..", ".LG..", "..GL.", "..G.."], // tulipán
+  [".CCC.", "CYYYC", ".CCC.", "..G..", "L.G..", "LLG..", "..G.."], // girasol
+  ["..C..", ".CCC.", ".CCC.", "C.G.C", "..G..", "LLG..", "..GLL"], // campanilla
+];
+const CENTROS_FLOR = ["#f6cf57", "#f6cf57", "#5b3e2b", "#f6cf57"];
 
 // Convierte una rejilla de letras en cuadraditos SVG, empezando en (dx, dy)
 function pixeles(filas, colores, dx = 0, dy = 0) {
@@ -183,22 +160,24 @@ function sprite(filas, colores) {
   return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${pixeles(filas, colores)}</svg>`;
 }
 
-// brote = algún hábito, planta = la mitad o más, flor = todos
-function nivelPlanta(clave) {
-  const total = datos.habitos.length;
-  const hechos = (datos.registros[clave] || []).filter(id => datos.habitos.some(h => h.id === id)).length;
-  if (!total || !hechos) return null;
-  const parte = hechos / total;
-  return parte >= 1 ? "flor" : parte >= 0.5 ? "planta" : "brote";
+// La forma va por el orden del hábito en la lista, así los primeros nunca se repiten
+function crearFlor(habito) {
+  const n = datos.habitos.indexOf(habito) % FORMAS_FLOR.length;
+  const flor = document.createElement("span");
+  flor.className = "flor";
+  flor.title = habito.nombre;
+  flor.innerHTML = sprite(FORMAS_FLOR[n], { C: habito.color, Y: CENTROS_FLOR[n], G: "#3f8a3a", L: "#86d16a" });
+  return flor;
 }
 
-function crearPlanta(clave) {
-  const nivel = nivelPlanta(clave);
-  if (!nivel) return null;
-  const planta = document.createElement("span");
-  planta.className = `planta ${nivel}`;
-  planta.innerHTML = sprite(SPRITES_PLANTA[nivel], COLORES_PLANTA);
-  return planta;
+// Un trocito de huerto con una flor por cada hábito hecho ese día (o null si no hay ninguno)
+function crearHuerto(clave) {
+  const hechos = datos.habitos.filter(h => (datos.registros[clave] || []).includes(h.id));
+  if (!hechos.length) return null;
+  const huerto = document.createElement("span");
+  huerto.className = "huerto";
+  hechos.forEach(h => huerto.appendChild(crearFlor(h)));
+  return huerto;
 }
 
 // =====================================================
@@ -450,22 +429,9 @@ function pintarCalendario() {
     }
     celda.appendChild(cabecera);
 
-    // Un punto de color por cada hábito hecho ese día
-    const puntos = document.createElement("div");
-    puntos.className = "puntos";
-    (datos.registros[clave] || []).forEach(id => {
-      const habito = datos.habitos.find(h => h.id === id);
-      if (!habito) return;
-      const punto = document.createElement("span");
-      punto.className = "punto";
-      punto.style.background = habito.color;
-      punto.title = habito.nombre;
-      puntos.appendChild(punto);
-    });
-    celda.appendChild(puntos);
-
-    const planta = crearPlanta(clave);
-    if (planta) celda.appendChild(planta);
+    // Una flor por cada hábito hecho ese día
+    const huerto = crearHuerto(clave);
+    if (huerto) celda.appendChild(huerto);
 
     celda.addEventListener("click", () => {
       diaSeleccionado = clave;
@@ -518,8 +484,8 @@ function pintarPanel() {
   const puntos = puntosDelDia(diaSeleccionado);
   const lineaPuntos = document.getElementById("puntos-dia");
   lineaPuntos.textContent = `⭐ ${puntos} puntos`;
-  const plantaDia = crearPlanta(diaSeleccionado);
-  if (plantaDia) lineaPuntos.prepend(plantaDia);
+  const huertoDia = crearHuerto(diaSeleccionado);
+  if (huertoDia) lineaPuntos.prepend(huertoDia);
 
   // Cumpleaños de ese día
   const ul = document.getElementById("lista-cumples");
@@ -654,7 +620,8 @@ function pintarEstadisticas() {
     const cabecera = document.createElement("div");
     cabecera.className = "stat-cabecera";
     const nombre = document.createElement("span");
-    nombre.textContent = `${h.emoji} ${h.nombre}`;
+    nombre.className = "stat-nombre-habito";
+    nombre.append(crearFlor(h), `${h.emoji} ${h.nombre}`);
     const porcentaje = document.createElement("span");
     porcentaje.className = "stat-pct";
     porcentaje.textContent = contados ? `${pct}%` : "—";
