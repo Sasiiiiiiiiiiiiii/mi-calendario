@@ -2,7 +2,7 @@
 // SERVICE WORKER: hace que la app funcione sin internet
 // Cambia VERSION cada vez que modifiques archivos para que se actualice
 // =====================================================
-const VERSION = "v5";
+const VERSION = "v6";
 const CACHE = `mi-calendario-${VERSION}`;
 
 const ARCHIVOS = [
@@ -18,8 +18,11 @@ const ARCHIVOS = [
 ];
 
 // Al instalarse: guarda los archivos de la app en la caché
+// (cache: "reload" para bajarlos de verdad y no la copia vieja que guarda el navegador)
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)));
+  e.waitUntil(caches.open(CACHE).then(c =>
+    c.addAll(ARCHIVOS.map(url => new Request(url, { cache: "reload" })))
+  ));
   self.skipWaiting();
 });
 
