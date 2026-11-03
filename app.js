@@ -322,7 +322,10 @@ function paseo(campo) {
   ].join("");
   const postura = n => pixeles(PASEANTE_PIES[n], persona, 0, suelo - 2) +
     gatas.map(x => pixeles([GATA_PATAS[n]], gata, x, suelo)).join("");
-  return `<g transform="translate(-30 0)"><g class="paseo" style="animation-delay:-${(Date.now() / 1000 % 70).toFixed(1)}s">${fijo}<g class="paso-a">${postura(0)}</g><g class="paso-b">${postura(1)}</g></g></g>`;
+  // Una zona invisible encima de cada gata para que al pasar el ratón salga su nombre
+  const nombres = ["Nata", "Trufa"].map((nombre, i) =>
+    `<rect class="gata" x="${gatas[i]}" y="${suelo - 3}" width="8" height="4" fill="#000" fill-opacity="0"><title>${nombre}</title></rect>`).join("");
+  return `<g transform="translate(-30 0)"><g class="paseo" style="animation-delay:-${(Date.now() / 1000 % 70).toFixed(1)}s">${fijo}<g class="paso-a">${postura(0)}</g><g class="paso-b">${postura(1)}</g>${nombres}</g></g>`;
 }
 
 function pintarPaisaje() {
