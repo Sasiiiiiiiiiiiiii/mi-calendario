@@ -160,9 +160,24 @@ function sprite(filas, colores) {
   return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${pixeles(filas, colores)}</svg>`;
 }
 
-// La forma va por el orden del hábito en la lista, así los primeros nunca se repiten
+// Cada hábito guarda su forma de flor (habito.flor) para que no cambie
+// al borrar otro. A los que no la tienen (datos antiguos) se les da según
+// su orden, que es la flor que ya tenían antes de este cambio.
+function asegurarFlores() {
+  datos.habitos.forEach((h, i) => {
+    if (!Number.isInteger(h.flor)) h.flor = i % FORMAS_FLOR.length;
+  });
+}
+
+// Para un hábito nuevo, la forma que menos se usa (la primera si empatan)
+function florLibre() {
+  const usos = FORMAS_FLOR.map((_, n) => datos.habitos.filter(h => h.flor === n).length);
+  return usos.indexOf(Math.min(...usos));
+}
+asegurarFlores();
+
 function crearFlor(habito) {
-  const n = datos.habitos.indexOf(habito) % FORMAS_FLOR.length;
+  const n = (Number.isInteger(habito.flor) ? habito.flor : 0) % FORMAS_FLOR.length;
   const flor = document.createElement("span");
   flor.className = "flor";
   flor.title = habito.nombre;
@@ -780,6 +795,7 @@ document.getElementById("form-habito").addEventListener("submit", e => {
     nombre,
     emoji: primerEmoji(document.getElementById("habito-emoji").value) || "✅",
     color: document.getElementById("habito-color").value,
+    flor: florLibre(),
   });
   e.target.reset();
   guardar();
@@ -830,6 +846,7 @@ document.getElementById("input-importar").addEventListener("change", async e => 
       throw new Error("formato incorrecto");
     }
     datos = { ...structuredClone(datosIniciales), ...importados };
+    asegurarFlores();
     guardar();
     pintarTodo();
     document.getElementById("btn-importar").textContent = "✅ Importado";
