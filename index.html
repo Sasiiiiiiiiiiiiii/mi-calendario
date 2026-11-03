@@ -98,9 +98,36 @@
         <p id="estado-copia" class="aviso"></p>
         <p id="estado-guardado" class="aviso"></p>
       </details>
+
+      <details id="seccion-nube">
+        <summary>☁️ Sincronizar</summary>
+        <!-- Sin sesión: se entra con el email (enlace o código que llega al correo) -->
+        <div id="nube-fuera">
+          <p class="aviso">Entra con tu email y tus datos se guardarán también en la nube, para tenerlos en el móvil y en el ordenador.</p>
+          <form id="form-email" class="form-fila">
+            <input id="input-email" type="email" placeholder="tu@email.com" autocomplete="email" required>
+            <button type="submit">Enviar</button>
+          </form>
+          <form id="form-codigo" class="form-fila" hidden>
+            <input id="input-codigo" inputmode="numeric" autocomplete="one-time-code" placeholder="Código del correo" required>
+            <button type="submit">Entrar</button>
+          </form>
+        </div>
+        <!-- Con sesión -->
+        <div id="nube-dentro" hidden>
+          <p id="nube-usuario" class="aviso"></p>
+          <div class="form-fila">
+            <button id="btn-sincronizar" type="button">Sincronizar ahora</button>
+            <button id="btn-salir" type="button" class="btn-secundario">Salir</button>
+          </div>
+        </div>
+        <p id="estado-nube" class="aviso"></p>
+      </details>
     </aside>
   </main>
 
   <script src="app.js"></script>
+  <script src="vendor/supabase.js"></script>
+  <script src="nube.js"></script>
 </body>
 </html>

@@ -563,6 +563,7 @@ summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
 }
 .aviso-copia button { --borde: #090d0c; }
 .aviso-copia[hidden] { display: none; }
+#seccion-nube [hidden] { display: none; }
 .aviso-copia span { flex: 1; min-width: 12rem; }
 
 /* ---------- Estadísticas ---------- */

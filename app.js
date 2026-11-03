@@ -25,6 +25,8 @@ function cargar() {
 
 function guardar() {
   localStorage.setItem(CLAVE_STORAGE, JSON.stringify(datos));
+  // Avisa a la nube (nube.js) de que hay cambios que subir
+  if (typeof avisarNube === "function") avisarNube();
 }
 
 let datos = cargar();

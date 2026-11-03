@@ -2,7 +2,7 @@
 // SERVICE WORKER: hace que la app funcione sin internet
 // Cambia VERSION cada vez que modifiques archivos para que se actualice
 // =====================================================
-const VERSION = "v18";
+const VERSION = "v19";
 const CACHE = `mi-calendario-${VERSION}`;
 
 const ARCHIVOS = [
@@ -10,6 +10,8 @@ const ARCHIVOS = [
   "./index.html",
   "./style.css",
   "./app.js",
+  "./nube.js",
+  "./vendor/supabase.js",
   "./manifest.json",
   "./iconos/icono.svg",
   "./iconos/icono-192.png",
@@ -40,6 +42,8 @@ self.addEventListener("activate", e => {
 // (así funciona sin conexión y las fuentes de Google también se guardan)
 self.addEventListener("fetch", e => {
   if (e.request.method !== "GET") return;
+  // Lo de Supabase (la nube) siempre va a la red: una copia vieja daría datos antiguos
+  if (new URL(e.request.url).hostname.endsWith(".supabase.co")) return;
   e.respondWith(
     caches.open(CACHE).then(async cache => {
       const enCache = await cache.match(e.request);
