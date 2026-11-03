@@ -247,6 +247,11 @@ const LUNA = ["..XXX..", ".XXX...", "XXX....", "XXX....", "XXX....", ".XXX...", 
 const NUBE = ["...WWW....", ".WWWWWWW..", "WWWWWWWWWW"];
 // N = nieve en la punta (en invierno), B = flores en primavera
 const ARBOL = ["..N..", ".TBT.", "TTTTT", ".BTT.", "TTTTT", "..R..", "..R.."];
+// Alguien paseando a dos gatas blancas: cuerpo fijo + dos posturas de patas (A y B)
+const PASEANTE = [".HHH.", ".HSS.", "..SS.", ".CCC.", "CCCCS", ".CCC.", ".PPP."];
+const PASEANTE_PIES = [[".P.P.", ".P.P.", ".Z.Z."], ["..PP.", "..PP.", "..ZZ."]];
+const GATA = ["W....W.W", ".W..WWEW", ".WWWWWWW"];
+const GATA_PATAS = [".W.W.W.W", "..W.W.W."];
 const CASA = ["...NNN...", "..AAAAA..", ".AAAAAAA.", "..PPPPP..", "..PVPDP..", "..PPPDP.."];
 
 function momentoDelDia(hora) {
@@ -289,6 +294,35 @@ function particulas(clase, cantidad, colores, semilla) {
     partes.push(`<rect class="${clase}" style="animation-duration:${segundos.toFixed(1)}s;animation-delay:-${(r() * segundos).toFixed(1)}s" x="${x}" y="-2" width="1" height="1" fill="${colores[i % colores.length]}"/>`);
   }
   return partes.join("");
+}
+
+// Una correa de píxeles en línea recta desde la mano hasta el cuello de la gata
+function correa(x0, y0, x1, y1, color) {
+  const pasos = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0));
+  const rects = [];
+  for (let i = 1; i < pasos; i++) {
+    const x = Math.round(x0 + (x1 - x0) * i / pasos);
+    const y = Math.round(y0 + (y1 - y0) * i / pasos);
+    rects.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`);
+  }
+  return rects.join("");
+}
+
+// El paseo cruza el paisaje de izquierda a derecha andando por el borde de la tierra
+function paseo(campo) {
+  const suelo = ALTO_PAISAJE - 5; // fila de los pies
+  const persona = { H: campo("#3b2a20"), S: campo("#f1c39b"), C: campo("#3d6fa8"), P: campo("#3b3a4a"), Z: campo("#2a2018") };
+  const gata = { W: campo("#f6f4ee"), E: campo("#3a3a3a") };
+  const gatas = [9, 19];
+  const mano = [4, suelo - 5];
+  const fijo = [
+    ...gatas.map(x => correa(mano[0], mano[1], x + 4, suelo - 3, campo("#c0392b"))),
+    pixeles(PASEANTE, persona, 0, suelo - 9),
+    ...gatas.map(x => pixeles(GATA, gata, x, suelo - 3)),
+  ].join("");
+  const postura = n => pixeles(PASEANTE_PIES[n], persona, 0, suelo - 2) +
+    gatas.map(x => pixeles([GATA_PATAS[n]], gata, x, suelo)).join("");
+  return `<g transform="translate(-30 0)"><g class="paseo" style="animation-delay:-${(Date.now() / 1000 % 70).toFixed(1)}s">${fijo}<g class="paso-a">${postura(0)}</g><g class="paso-b">${postura(1)}</g></g></g>`;
 }
 
 function pintarPaisaje() {
@@ -374,6 +408,8 @@ function pintarPaisaje() {
   partes.push(pixeles(CASA, {
     A: campo("#b4532a"), N: campo(e.nieve || "#b4532a"), P: campo(m.pared), V: m.ventana, D: campo("#5b3e2b"),
   }, 262, alturaColina(266, 40, 3, 4) - 5));
+
+  partes.push(paseo(campo));
 
   // Copos en invierno, hojas en otoño, luciérnagas las noches de verano
   if (estacion === "invierno") partes.push(particulas("copo", 45, ["#ffffff", "#dfe8f5"], 3));

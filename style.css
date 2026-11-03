@@ -122,8 +122,17 @@ header {
 .luciernaga { animation: luciernaga 4s steps(1) infinite; }
 @keyframes luciernaga { 0%, 60% { opacity: 0; } 70%, 90% { opacity: 1; } }
 
+/* El paseo: cruzan el paisaje despacio y van cambiando de pie */
+.paseo { animation: paseo 70s steps(350) infinite; }
+@keyframes paseo { to { transform: translateX(360px); } }
+.paso-a, .paso-b { animation: paso 0.6s steps(1) infinite; }
+.paso-b { animation-delay: -0.3s; }
+@keyframes paso { 50% { opacity: 0; } }
+
 @media (prefers-reduced-motion: reduce) {
-  .nube, .estrella, .copo, .hoja, .luciernaga { animation: none; }
+  .nube, .estrella, .copo, .hoja, .luciernaga, .paseo, .paso-a, .paso-b { animation: none; }
+  .paseo { transform: translateX(150px); }
+  .paso-b { display: none; }
   .copo, .hoja { display: none; }
 }
 
