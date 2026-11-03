@@ -135,16 +135,15 @@ function puntosEntre(desde, hasta) {
 }
 
 // =====================================================
-// FLORES: cada hábito tiene su flor, de su color; cada día crece una por hábito hecho
+// LATAS: cada hábito tiene su lata (blanca, rosa o naranja); cada día sale una por hábito hecho
 // =====================================================
-// C = pétalos (el color del hábito), Y = centro, G = tallo, L = hojas
-const FORMAS_FLOR = [
-  [".C.C.", "CCYCC", ".C.C.", "..G..", "LLG..", "..GLL", "..G.."], // margarita
-  ["C.C.C", "CCCCC", ".CCC.", "..G..", ".LG..", "..GL.", "..G.."], // tulipán
-  [".CCC.", "CYYYC", ".CCC.", "..G..", "L.G..", "LLG..", "..G.."], // girasol
-  ["..C..", ".CCC.", ".CCC.", "C.G.C", "..G..", "LLG..", "..GLL"], // campanilla
+// S = tapa, B = lata, H = brillo, D = sombra, L = el dibujo de la lata
+const LATA = [".SSS.", "HBBBD", "HLBLD", "HLBLD", "HLBLD", "HBBBD", ".SSS."];
+const COLORES_LATA = [
+  { nombre: "blanca", B: "#f4f4f0", H: "#ffffff", D: "#b8b8b2", L: "#8fa6c2" },
+  { nombre: "rosa", B: "#f28bb5", H: "#f9b8d2", D: "#c95f8c", L: "#ffffff" },
+  { nombre: "naranja", B: "#f39a2e", H: "#f8c06a", D: "#c46f14", L: "#ffffff" },
 ];
-const CENTROS_FLOR = ["#f6cf57", "#f6cf57", "#5b3e2b", "#f6cf57"];
 
 // Convierte una rejilla de letras en cuadraditos SVG, empezando en (dx, dy)
 function pixeles(filas, colores, dx = 0, dy = 0) {
@@ -160,38 +159,38 @@ function sprite(filas, colores) {
   return `<svg viewBox="0 0 ${filas[0].length} ${filas.length}" shape-rendering="crispEdges" aria-hidden="true">${pixeles(filas, colores)}</svg>`;
 }
 
-// Cada hábito guarda su forma de flor (habito.flor) para que no cambie
-// al borrar otro. A los que no la tienen (datos antiguos) se les da según
-// su orden, que es la flor que ya tenían antes de este cambio.
-function asegurarFlores() {
+// Cada hábito guarda su lata en habito.flor (se llama así porque antes eran flores;
+// se mantiene el nombre para que los datos guardados sigan valiendo). A los que no
+// la tienen (datos antiguos) se les da según su orden.
+function asegurarLatas() {
   datos.habitos.forEach((h, i) => {
-    if (!Number.isInteger(h.flor)) h.flor = i % FORMAS_FLOR.length;
+    if (!Number.isInteger(h.flor)) h.flor = i % COLORES_LATA.length;
   });
 }
 
-// Para un hábito nuevo, la forma que menos se usa (la primera si empatan)
-function florLibre() {
-  const usos = FORMAS_FLOR.map((_, n) => datos.habitos.filter(h => h.flor === n).length);
+// Para un hábito nuevo, la lata que menos se usa (la primera si empatan)
+function lataLibre() {
+  const usos = COLORES_LATA.map((_, n) => datos.habitos.filter(h => h.flor % COLORES_LATA.length === n).length);
   return usos.indexOf(Math.min(...usos));
 }
-asegurarFlores();
+asegurarLatas();
 
-function crearFlor(habito) {
-  const n = (Number.isInteger(habito.flor) ? habito.flor : 0) % FORMAS_FLOR.length;
-  const flor = document.createElement("span");
-  flor.className = "flor";
-  flor.title = habito.nombre;
-  flor.innerHTML = sprite(FORMAS_FLOR[n], { C: habito.color, Y: CENTROS_FLOR[n], G: "#3f8a3a", L: "#86d16a" });
-  return flor;
+function crearLata(habito) {
+  const n = (Number.isInteger(habito.flor) ? habito.flor : 0) % COLORES_LATA.length;
+  const lata = document.createElement("span");
+  lata.className = "lata";
+  lata.title = habito.nombre;
+  lata.innerHTML = sprite(LATA, { S: "#b8bcc4", ...COLORES_LATA[n] });
+  return lata;
 }
 
-// Un trocito de huerto con una flor por cada hábito hecho ese día (o null si no hay ninguno)
+// Un trocito de huerto con una lata por cada hábito hecho ese día (o null si no hay ninguno)
 function crearHuerto(clave) {
   const hechos = datos.habitos.filter(h => (datos.registros[clave] || []).includes(h.id));
   if (!hechos.length) return null;
   const huerto = document.createElement("span");
   huerto.className = "huerto";
-  hechos.forEach(h => huerto.appendChild(crearFlor(h)));
+  hechos.forEach(h => huerto.appendChild(crearLata(h)));
   return huerto;
 }
 
@@ -483,7 +482,7 @@ function pintarCalendario() {
     }
     celda.appendChild(cabecera);
 
-    // Una flor por cada hábito hecho ese día
+    // Una lata por cada hábito hecho ese día
     const huerto = crearHuerto(clave);
     if (huerto) celda.appendChild(huerto);
 
@@ -675,7 +674,7 @@ function pintarEstadisticas() {
     cabecera.className = "stat-cabecera";
     const nombre = document.createElement("span");
     nombre.className = "stat-nombre-habito";
-    nombre.append(crearFlor(h), `${h.emoji} ${h.nombre}`);
+    nombre.append(crearLata(h), `${h.emoji} ${h.nombre}`);
     const porcentaje = document.createElement("span");
     porcentaje.className = "stat-pct";
     porcentaje.textContent = contados ? `${pct}%` : "—";
@@ -834,7 +833,7 @@ document.getElementById("form-habito").addEventListener("submit", e => {
     nombre,
     emoji: primerEmoji(document.getElementById("habito-emoji").value) || "✅",
     color: document.getElementById("habito-color").value,
-    flor: florLibre(),
+    flor: lataLibre(),
   });
   e.target.reset();
   guardar();
@@ -885,7 +884,7 @@ document.getElementById("input-importar").addEventListener("change", async e => 
       throw new Error("formato incorrecto");
     }
     datos = { ...structuredClone(datosIniciales), ...importados };
-    asegurarFlores();
+    asegurarLatas();
     guardar();
     pintarTodo();
     document.getElementById("btn-importar").textContent = "✅ Importado";
@@ -965,6 +964,23 @@ document.addEventListener("visibilitychange", () => {
   if (!document.hidden) comprobarCambioDeDia();
 });
 setInterval(comprobarCambioDeDia, 60 * 1000);
+
+// Al tocar una gata (en el móvil no hay ratón) sale un bocadillo con su nombre
+document.querySelector("header").addEventListener("click", e => {
+  const gata = e.target.closest("rect.gata");
+  if (!gata) return;
+  const cabecera = e.currentTarget;
+  cabecera.querySelector(".bocadillo")?.remove();
+  const bocadillo = document.createElement("span");
+  bocadillo.className = "bocadillo";
+  bocadillo.textContent = gata.querySelector("title").textContent;
+  const caja = cabecera.getBoundingClientRect();
+  const sitio = gata.getBoundingClientRect();
+  bocadillo.style.left = `${sitio.left + sitio.width / 2 - caja.left}px`;
+  bocadillo.style.top = `${sitio.top - caja.top}px`;
+  cabecera.appendChild(bocadillo);
+  setTimeout(() => bocadillo.remove(), 2000);
+});
 
 // Arranque
 pintarTodo();
