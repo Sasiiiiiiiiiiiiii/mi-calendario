@@ -380,13 +380,14 @@ function pintarPaisaje() {
   const deDia = nombre !== "noche";
   const recorrido = deDia ? (hora - 6) / 15 : ((hora + 24 - 21) % 24) / 9;
   const ax = Math.round(margen + 8 + recorrido * (visible - 23));
-  const ay = Math.round(26 - Math.sin(recorrido * Math.PI) * 15);
-  partes.push(pixeles(deDia ? SOL : LUNA, { X: m.astro }, ax, ay));
-
-  // Nubes de día, que se mueven despacio. En pantallas anchas se corta la parte de
-  // arriba del cielo, así que las bajamos para que no queden cortadas por el borde.
+  // En pantallas anchas se corta la parte de arriba del cielo: "arriba" es la primera
+  // fila que se ve, y el sol, la luna y las nubes no suben de ahí para no quedar cortados
   const arriba = Math.ceil(ALTO_PAISAJE - Math.min(ALTO_PAISAJE,
     ANCHO_PAISAJE * contenedor.clientHeight / Math.max(contenedor.clientWidth, 1)));
+  const ay = Math.max(Math.round(26 - Math.sin(recorrido * Math.PI) * 15), arriba + 1);
+  partes.push(pixeles(deDia ? SOL : LUNA, { X: m.astro }, ax, ay));
+
+  // Nubes de día, que se mueven despacio (bajadas si el borde de arriba las cortaría)
   if (nombre === "dia") {
     [[0, 10, 90, 1], [1, 16, 140, 4], [2, 7, 110, 2]].forEach(([i, alto, segundos, bajo]) => {
       const y = Math.max(alto, arriba + bajo);
