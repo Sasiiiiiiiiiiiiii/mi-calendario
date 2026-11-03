@@ -383,9 +383,13 @@ function pintarPaisaje() {
   const ay = Math.round(26 - Math.sin(recorrido * Math.PI) * 15);
   partes.push(pixeles(deDia ? SOL : LUNA, { X: m.astro }, ax, ay));
 
-  // Nubes de día, que se mueven despacio
+  // Nubes de día, que se mueven despacio. En pantallas anchas se corta la parte de
+  // arriba del cielo, así que las bajamos para que no queden cortadas por el borde.
+  const arriba = Math.ceil(ALTO_PAISAJE - Math.min(ALTO_PAISAJE,
+    ANCHO_PAISAJE * contenedor.clientHeight / Math.max(contenedor.clientWidth, 1)));
   if (nombre === "dia") {
-    [[0, 10, 90], [1, 16, 140], [2, 7, 110]].forEach(([i, y, segundos]) => {
+    [[0, 10, 90, 1], [1, 16, 140, 4], [2, 7, 110, 2]].forEach(([i, alto, segundos, bajo]) => {
+      const y = Math.max(alto, arriba + bajo);
       partes.push(`<g class="nube" style="animation-duration:${segundos}s;animation-delay:-${i * 40}s">${pixeles(NUBE, { W: "#ffffff" }, -12, y)}</g>`);
     });
   }
