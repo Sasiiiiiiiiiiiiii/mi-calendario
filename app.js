@@ -327,6 +327,19 @@ function paseo(campo) {
   return `<g transform="translate(-30 0)"><g class="paseo" style="animation-delay:-${(Date.now() / 1000 % 70).toFixed(1)}s">${fijo}<g class="paso-a">${postura(0)}</g><g class="paso-b">${postura(1)}</g>${nombres}</g></g>`;
 }
 
+// Una forma en escalera: en cada columna x va desde alturas[x] hasta "fondo"
+function escalones(alturas, fondo, color) {
+  const d = alturas.map((y, x) => `V${y}H${x + 1}`).join("");
+  return `<path d="M0 ${fondo}${d}V${fondo}Z" fill="${color}"/>`;
+}
+
+// Una franja que sigue la escalera: el borde de arriba es alturas[x] y tiene "grosor" píxeles
+function franja(alturas, grosor, color) {
+  const arriba = alturas.map((y, x) => `V${y}H${x + 1}`).join("");
+  const abajo = alturas.map((y, x) => `V${y + grosor}H${x}`).reverse().join("");
+  return `<path d="M0 ${alturas[0]}${arriba}${abajo}Z" fill="${color}"/>`;
+}
+
 function pintarPaisaje() {
   const ahora = new Date();
   const hora = ahora.getHours() + ahora.getMinutes() / 60;
@@ -378,22 +391,20 @@ function pintarPaisaje() {
   }
 
   // Colinas: las de lejos (con nieve en la cumbre en invierno) y las de cerca
-  for (let x = 0; x < ANCHO_PAISAJE; x++) {
-    const lejos = alturaColina(x, 32, 6, 1);
-    partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${ALTO_PAISAJE - lejos}" fill="${campo(e.lejos)}"/>`);
-    if (e.cumbre && lejos < 31) {
-      partes.push(`<rect x="${x}" y="${lejos}" width="1" height="${31 - lejos}" fill="${campo(e.cumbre)}"/>`);
-    }
-  }
+  // Cada colina es una sola pieza: con una columna por píxel, a algunos zooms
+  // quedaban rendijas finísimas entre columnas por las que se veía el cielo
+  const lejos = [...Array(ANCHO_PAISAJE)].map((_, x) => alturaColina(x, 32, 6, 1));
+  const cerca = [...Array(ANCHO_PAISAJE)].map((_, x) => alturaColina(x, 40, 3, 4));
+  partes.push(escalones(lejos, ALTO_PAISAJE, campo(e.lejos)));
+  if (e.cumbre) partes.push(escalones(lejos.map(y => Math.min(y, 31)), 31, campo(e.cumbre)));
+  partes.push(escalones(cerca, ALTO_PAISAJE, campo(e.cerca)));
+  partes.push(franja(cerca, e.nieve ? 2 : 1, campo(e.hierba)));
   const flores = azar(11);
   for (let x = 0; x < ANCHO_PAISAJE; x++) {
-    const cerca = alturaColina(x, 40, 3, 4);
-    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${ALTO_PAISAJE - cerca}" fill="${campo(e.cerca)}"/>`);
-    partes.push(`<rect x="${x}" y="${cerca}" width="1" height="${e.nieve ? 2 : 1}" fill="${campo(e.hierba)}"/>`);
     // Florecitas en primavera
     if (e.flor && flores() < 0.12) {
       const color = flores() < 0.5 ? e.flor : "#f6cf57";
-      partes.push(`<rect x="${x}" y="${cerca - 1}" width="1" height="1" fill="${campo(color)}"/>`);
+      partes.push(`<rect x="${x}" y="${cerca[x] - 1}" width="1" height="1" fill="${campo(color)}"/>`);
     }
   }
 
