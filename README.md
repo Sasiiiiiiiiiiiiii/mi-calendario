@@ -14,12 +14,13 @@ Se puede instalar en el móvil o en el ordenador (menú del navegador → *Insta
 - **Cumpleaños** que se repiten cada año (los del 29 de febrero salen el 28 en los años normales).
 - **Notas** para cada día.
 - **Paisaje en la cabecera** que cambia con la hora (amanecer, día, atardecer y noche) y con la estación del mes que estás mirando. Por él pasean Nata y Trufa, dos gatas blancas: pasa el ratón o tócalas para ver su nombre.
+- **Amigos:** con tu código o un enlace de invitación. Solo ven el nombre que elijas, no tu email ni tus datos.
 - **Copias de seguridad:** exportar e importar los datos en un archivo, con un aviso si hace más de 14 días de la última copia.
 - Tema oscuro, y tema claro automático si el sistema lo usa.
 
 ## Dónde se guardan los datos
 
-Todo se queda **en tu navegador** (`localStorage`, clave `mi-calendario`). No hay servidor ni cuenta: si borras los datos del navegador o cambias de dispositivo, se pierden, así que **exporta una copia de vez en cuando**.
+Los datos se guardan **en tu navegador** (`localStorage`, clave `mi-calendario`). Si entras con tu email, se sincronizan además con Supabase entre tus aparatos. Sin entrar, si borras los datos del navegador o cambias de dispositivo, se pierden, así que **exporta una copia de vez en cuando**.
 
 ## Archivos
 
@@ -27,6 +28,9 @@ Todo se queda **en tu navegador** (`localStorage`, clave `mi-calendario`). No ha
 |---|---|
 | `index.html` | La página |
 | `app.js` | Toda la lógica: datos, calendario, latas, paisaje, copias |
+| `nube.js` | Entrar con el email y sincronizar con Supabase |
+| `amigos.js` | Nombre, código de invitación y lista de amigos |
+| `supabase/esquema.sql` | Tablas, reglas y funciones de la base de datos |
 | `style.css` | El tema actual (huerto pixel art) |
 | `style-noche.css` | Tema anterior "noche suave", guardado por si se quiere volver |
 | `style-original.css` | Primer tema claro, guardado también como copia |
@@ -52,4 +56,4 @@ Sube el número de `VERSION` en `sw.js` (por ejemplo `v11` → `v12`) cada vez q
 
 ## Próximamente
 
-- Ranking semanal con amigos (con Supabase), que además sincronizará los datos entre dispositivos.
+- Ranking semanal con amigos.

@@ -466,8 +466,8 @@ aside h3::before, .estadisticas h3::before {
   color: var(--suave);
 }
 
-#lista-cumples { list-style: none; padding: 0; margin: 0.4rem 0; }
-#lista-cumples li {
+#lista-cumples, #lista-amigos { list-style: none; padding: 0; margin: 0.4rem 0; }
+#lista-cumples li, #lista-amigos li {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -478,15 +478,16 @@ aside h3::before, .estadisticas h3::before {
 }
 #lista-cumples li::before { content: "🎂 "; }
 #lista-cumples li.editando::before { content: none; }
-.cumple-nombre { flex: 1; }
-#lista-cumples button {
+.cumple-nombre { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+#mi-codigo { color: var(--acento-texto); letter-spacing: 0.1em; user-select: all; }
+#lista-cumples button, #lista-amigos button {
   background: none;
   color: var(--suave);
   padding: 0 0.4rem;
   margin-left: auto;
   box-shadow: none;
 }
-#lista-cumples button:active { transform: none; }
+#lista-cumples button:active, #lista-amigos button:active { transform: none; }
 #lista-cumples .form-cumple-editar button {
   background: var(--acento);
   color: var(--texto-boton);
@@ -563,7 +564,7 @@ summary { cursor: pointer; color: var(--acento-texto); font-weight: 700; }
 }
 .aviso-copia button { --borde: #090d0c; }
 .aviso-copia[hidden] { display: none; }
-#seccion-nube [hidden] { display: none; }
+#seccion-nube [hidden], #seccion-amigos [hidden] { display: none; }
 .aviso-copia span { flex: 1; min-width: 12rem; }
 
 /* ---------- Estadísticas ---------- */

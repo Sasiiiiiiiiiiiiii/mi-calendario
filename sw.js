@@ -2,7 +2,7 @@
 // SERVICE WORKER: hace que la app funcione sin internet
 // Cambia VERSION cada vez que modifiques archivos para que se actualice
 // =====================================================
-const VERSION = "v19";
+const VERSION = "v20";
 const CACHE = `mi-calendario-${VERSION}`;
 
 const ARCHIVOS = [
@@ -11,6 +11,7 @@ const ARCHIVOS = [
   "./style.css",
   "./app.js",
   "./nube.js",
+  "./amigos.js",
   "./vendor/supabase.js",
   "./manifest.json",
   "./iconos/icono.svg",

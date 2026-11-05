@@ -123,11 +123,31 @@
         </div>
         <p id="estado-nube" class="aviso"></p>
       </details>
+
+      <details id="seccion-amigos">
+        <summary>👥 Amigos</summary>
+        <p id="amigos-fuera" class="aviso">Entra con tu email en ☁️ Sincronizar para añadir amigos.</p>
+        <form id="form-nombre" class="form-fila" hidden>
+          <input id="input-nombre" maxlength="20" placeholder="Tu nombre para tus amigos" autocomplete="off" required>
+          <button type="submit">Guardar</button>
+        </form>
+        <div id="amigos-dentro" hidden>
+          <p class="aviso">Tu código: <strong id="mi-codigo"></strong></p>
+          <button id="btn-invitar" type="button">Compartir invitación</button>
+          <form id="form-amigo" class="form-fila">
+            <input id="input-amigo" maxlength="12" placeholder="Código de tu amigo" autocapitalize="characters" autocomplete="off" required>
+            <button type="submit">Añadir</button>
+          </form>
+          <ul id="lista-amigos"></ul>
+        </div>
+        <p id="estado-amigos" class="aviso"></p>
+      </details>
     </aside>
   </main>
 
   <script src="app.js"></script>
   <script src="vendor/supabase.js"></script>
   <script src="nube.js"></script>
+  <script src="amigos.js"></script>
 </body>
 </html>
