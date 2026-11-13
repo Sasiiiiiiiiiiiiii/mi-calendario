@@ -16,6 +16,8 @@ const CLAVE_NUBE = "mi-calendario-nube";
 
 // Si venimos del enlace del correo (se mira antes de que Supabase limpie la dirección)
 const veniaDelCorreo = location.hash.includes("access_token");
+// Si el enlace del correo no valía, Supabase vuelve con #error=...; lo leemos para avisar
+const errorDelCorreo = new URLSearchParams(location.hash.slice(1)).get("error_code");
 
 const nube = window.supabase
   ? window.supabase.createClient(SUPABASE_URL, SUPABASE_CLAVE, {
@@ -252,3 +254,11 @@ if (nube) {
   setInterval(() => { if (!document.hidden) sincronizar(); }, 2 * 60 * 1000);
 }
 pintarNube();
+
+if (errorDelCorreo) {
+  document.getElementById("estado-nube").textContent = errorDelCorreo === "otp_expired"
+    ? "⚠️ Ese enlace ya no vale (caducó o ya se usó). Pide otro correo."
+    : "⚠️ No se pudo entrar con ese enlace. Pide otro correo.";
+  document.getElementById("seccion-nube").open = true;
+  history.replaceState(null, "", location.pathname + location.search);
+}
