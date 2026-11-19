@@ -186,3 +186,121 @@ grant execute on function public.guardar_nombre(text) to authenticated;
 grant execute on function public.agregar_amigo(text) to authenticated;
 grant execute on function public.mis_amigos() to authenticated;
 grant execute on function public.quitar_amigo(uuid) to authenticated;
+
+-- =====================================================
+-- Ranking semanal: los puntos los calcula la base de datos
+-- =====================================================
+-- El navegador puede escribir lo que quiera en "calendarios", así que el ranking no
+-- se fía de eso. Cada vez que se guarda un calendario, la base de datos apunta aquí
+-- los hábitos marcados de HOY o AYER (hora de España). Lo que llegue con fecha más
+-- vieja se queda en el calendario de esa persona, pero no puntúa.
+-- Quitar marcas sí vale siempre (solo baja puntos).
+
+create table if not exists public.marcas (
+  user_id uuid not null references auth.users on delete cascade,
+  dia date not null,
+  habito text not null,
+  primary key (user_id, dia, habito)
+);
+alter table public.marcas enable row level security;
+revoke all on public.marcas from anon, authenticated;
+
+create or replace function public.registrar_marcas()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  hoy date := (now() at time zone 'Europe/Madrid')::date;
+  habitos jsonb := case when jsonb_typeof(new.datos -> 'habitos') = 'array'
+                        then new.datos -> 'habitos' else '[]' end;
+  registros jsonb := case when jsonb_typeof(new.datos -> 'registros') = 'object'
+                          then new.datos -> 'registros' else '{}' end;
+begin
+  -- Fuera lo que ya no está marcado, o cuyo hábito se ha borrado
+  delete from public.marcas m
+  where m.user_id = new.user_id
+    and not (
+      coalesce(registros -> (m.dia::text) ? m.habito, false)
+      and exists (select 1 from jsonb_array_elements(habitos) h where h ->> 'id' = m.habito)
+    );
+
+  -- Dentro lo nuevo, solo si es de hoy o de ayer
+  insert into public.marcas (user_id, dia, habito)
+  select new.user_id, d, id
+  from unnest(array[hoy - 1, hoy]) as d,
+       jsonb_array_elements_text(
+         case when jsonb_typeof(registros -> (d::text)) = 'array'
+              then registros -> (d::text) else '[]' end
+       ) as id
+  where exists (select 1 from jsonb_array_elements(habitos) h where h ->> 'id' = id)
+  on conflict do nothing;
+
+  return null;
+end;
+$$;
+
+drop trigger if exists registrar_marcas on public.calendarios;
+create trigger registrar_marcas
+  after insert or update on public.calendarios
+  for each row execute function public.registrar_marcas();
+
+-- Puntos de esta semana (lunes a domingo, hora de España) para mí y mis amigos.
+-- Mismas normas que app.js: 10 por hábito, máximo 50 al día, y bonus el día en que
+-- la racha de un hábito llega a 3 (+15), 7 (+40) o 30 (+150). Si cambian allí,
+-- hay que cambiarlas aquí también. Solo devuelve nombres y puntos.
+-- Si aún no tengo nombre (perfil), no devuelve nada.
+create or replace function public.ranking_semanal()
+returns table (nombre text, puntos integer, soy_yo boolean)
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  with hoy as (
+    select (now() at time zone 'Europe/Madrid')::date as d
+  ),
+  semana as (
+    select d - (extract(isodow from d)::int - 1) as lunes from hoy
+  ),
+  gente as (
+    select p.user_id from public.perfiles p where p.user_id = auth.uid()
+    union
+    select case when a.usuario_a = auth.uid() then a.usuario_b else a.usuario_a end
+    from public.amistades a
+    where auth.uid() in (a.usuario_a, a.usuario_b)
+      and exists (select 1 from public.perfiles p where p.user_id = auth.uid())
+  ),
+  -- 30 días antes del lunes para poder contar rachas que empezaron la semana pasada
+  marcas as (
+    select m.user_id, m.habito, m.dia,
+           m.dia - (row_number() over (partition by m.user_id, m.habito order by m.dia))::int as grupo
+    from public.marcas m, semana s
+    where m.user_id in (select user_id from gente)
+      and m.dia between s.lunes - 30 and s.lunes + 6
+  ),
+  rachas as (
+    select user_id, habito, dia,
+           row_number() over (partition by user_id, habito, grupo order by dia) as racha
+    from marcas
+  ),
+  dias as (
+    select r.user_id, r.dia,
+           least(count(*) * 10, 50)
+           + sum(case r.racha when 3 then 15 when 7 then 40 when 30 then 150 else 0 end) as puntos
+    from rachas r, semana s
+    where r.dia between s.lunes and s.lunes + 6
+    group by r.user_id, r.dia
+  )
+  select p.nombre, coalesce(sum(d.puntos), 0)::integer, p.user_id = auth.uid()
+  from gente g
+  join public.perfiles p on p.user_id = g.user_id
+  left join dias d on d.user_id = g.user_id
+  group by p.user_id, p.nombre
+  order by 2 desc, p.nombre;
+$$;
+
+revoke all on function public.registrar_marcas() from public, anon, authenticated;
+revoke all on function public.ranking_semanal() from public, anon;
+grant execute on function public.ranking_semanal() to authenticated;

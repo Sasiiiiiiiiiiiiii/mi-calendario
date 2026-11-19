@@ -160,6 +160,8 @@ async function sincronizar() {
       await subirDatos(fila.actualizado);
     }
     errorNube = "";
+    // Para el ranking (ranking.js): la base de datos ya tiene lo último
+    document.dispatchEvent(new Event("nube-sincronizada"));
   } catch (e) {
     errorNube = "No se pudo sincronizar. Se reintentará más tarde.";
     console.warn("Nube:", e);

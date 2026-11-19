@@ -466,8 +466,8 @@ aside h3::before, .estadisticas h3::before {
   color: var(--suave);
 }
 
-#lista-cumples, #lista-amigos { list-style: none; padding: 0; margin: 0.4rem 0; }
-#lista-cumples li, #lista-amigos li {
+#lista-cumples, #lista-amigos, #lista-ranking { list-style: none; padding: 0; margin: 0.4rem 0; }
+#lista-cumples li, #lista-amigos li, #lista-ranking li {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -479,6 +479,10 @@ aside h3::before, .estadisticas h3::before {
 #lista-cumples li::before { content: "🎂 "; }
 #lista-cumples li.editando::before { content: none; }
 .cumple-nombre { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+#lista-ranking li { gap: 0.6rem; }
+#lista-ranking li.soy-yo { color: var(--acento-texto); font-weight: 700; }
+.ranking-puesto { min-width: 1.8rem; }
+.ranking-puntos { white-space: nowrap; }
 #mi-codigo { color: var(--acento-texto); letter-spacing: 0.1em; user-select: all; }
 #lista-cumples button, #lista-amigos button {
   background: none;

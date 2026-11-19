@@ -15,6 +15,7 @@ Se puede instalar en el móvil o en el ordenador (menú del navegador → *Insta
 - **Notas** para cada día.
 - **Paisaje en la cabecera** que cambia con la hora (amanecer, día, atardecer y noche) y con la estación del mes que estás mirando. Por él pasean Nata y Trufa, dos gatas blancas: pasa el ratón o tócalas para ver su nombre.
 - **Amigos:** con tu código o un enlace de invitación. Solo ven el nombre que elijas, no tu email ni tus datos.
+- **Ranking semanal** (lunes a domingo, hora de España) con tus amigos. Los puntos los calcula la base de datos y solo cuenta lo marcado el mismo día o al siguiente, para que nadie haga trampas.
 - **Copias de seguridad:** exportar e importar los datos en un archivo, con un aviso si hace más de 14 días de la última copia.
 - Tema oscuro, y tema claro automático si el sistema lo usa.
 
@@ -30,6 +31,7 @@ Los datos se guardan **en tu navegador** (`localStorage`, clave `mi-calendario`)
 | `app.js` | Toda la lógica: datos, calendario, latas, paisaje, copias |
 | `nube.js` | Entrar con el email y sincronizar con Supabase |
 | `amigos.js` | Nombre, código de invitación y lista de amigos |
+| `ranking.js` | Ranking semanal con los amigos |
 | `supabase/esquema.sql` | Tablas, reglas y funciones de la base de datos |
 | `style.css` | El tema actual (huerto pixel art) |
 | `style-noche.css` | Tema anterior "noche suave", guardado por si se quiere volver |
@@ -54,6 +56,6 @@ y abre http://localhost:8000 (el service worker necesita servirse desde un servi
 
 Sube el número de `VERSION` en `sw.js` (por ejemplo `v11` → `v12`) cada vez que cambies archivos, para que las apps ya instaladas descarguen la versión nueva.
 
-## Próximamente
+## Al cambiar los puntos
 
-- Ranking semanal con amigos.
+Las normas de puntos están en dos sitios: `app.js` (lo que ves en tu calendario) y `ranking_semanal` en `supabase/esquema.sql` (el ranking). Si cambias una, cambia la otra y vuelve a pegar el SQL en Supabase.
