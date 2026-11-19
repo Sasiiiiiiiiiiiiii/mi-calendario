@@ -6,6 +6,8 @@ Un calendario de hábitos para el día a día, con aspecto de **huerto en pixel 
 
 Se puede instalar en el móvil o en el ordenador (menú del navegador → *Instalar* / *Añadir a pantalla de inicio*) y funciona sin internet.
 
+📖 Cómo se fue haciendo, versión a versión: [HISTORIA.md](HISTORIA.md)
+
 ## Qué hace
 
 - **Hábitos diarios** con puntos y rachas (por defecto: Entrenar, Creatina y Estudiar). Se pueden añadir, editar y borrar.
